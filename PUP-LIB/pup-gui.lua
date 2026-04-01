@@ -278,6 +278,13 @@ function updateTextInformation()
         main_text_hub.toggle_auto_deploy = const_off
     end
 
+    if broadcast_pup_pet_metadata then
+        broadcast_pup_pet_metadata()
+    end
+    if broadcast_pup_pet_state then
+        broadcast_pup_pet_state()
+    end
+
     if state.CP.value then
         main_text_hub.toggle_cp = const_on
     else

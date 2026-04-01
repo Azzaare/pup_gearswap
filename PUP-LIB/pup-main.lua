@@ -36,6 +36,42 @@ end
 
 -- Seeds the time used to calculate various functions per second
 time_start = os.time()
+local PUP_METADATA_IPC_PREFIX = 'pup_meta:'
+local PUP_STATE_IPC_PREFIX = 'pup_state:'
+local last_broadcast_pet_level = nil
+local last_broadcast_pet_state = nil
+
+local automaton_base_level_by_animator = {
+    ["Animator P +1"] = 119,
+    ["Animator P II +1"] = 119,
+    ["Animator P"] = 119,
+    ["Animator P II"] = 119,
+    ["Divinator"] = 119,
+    ["Divinator II"] = 119,
+    ["Animator Z"] = 119,
+    ["Magneto"] = 117,
+    ["Em. Animator"] = 115,
+    ["E. Animator II"] = 115,
+    ["Alternator"] = 113,
+    ["F. Animator"] = 106,
+}
+
+local legacy_animators = S {
+    "Animator",
+    "Turbo Animator",
+    "Animator +1",
+    "Deluxe Animator"
+}
+
+local automaton_bonus_level_by_back = {
+    ["Visucius's Mantle"] = 1,
+}
+
+local automaton_bonus_level_by_main = {
+    ["Varga Purnikawa (Level 119)"] = 1,
+    ["Varga Purnikawa (Level 119 II)"] = 2,
+    ["Varga Purnikawa (Level 119 III)"] = 3,
+}
 
 local function pick_pup_stylelock_set()
     local configured_sets = rawget(_G, 'PUP_STYLELOCK_SETS')
@@ -78,10 +114,84 @@ function pup_apply_stylelock()
     send_command('wait 2;input /lockstyleset ' .. tostring(stylelock_set))
 end
 
+local function get_current_pup_main_job_level()
+    if player and player.main_job_level then
+        return player.main_job_level
+    end
+
+    local windower_player = windower.ffxi.get_player()
+    return windower_player and windower_player.main_job_level or 0
+end
+
+function get_equipped_automaton_level()
+    if not player or not player.equipment then
+        return nil
+    end
+
+    local animator = player.equipment.range
+    if not animator or animator == 'empty' then
+        return nil
+    end
+
+    local player_level = get_current_pup_main_job_level()
+    local base_level = automaton_base_level_by_animator[animator]
+
+    if legacy_animators:contains(animator) then
+        base_level = player_level
+    end
+
+    if not base_level then
+        return nil
+    end
+
+    if base_level <= 98 then
+        return base_level
+    end
+
+    local back_bonus = automaton_bonus_level_by_back[player.equipment.back] or 0
+    local main_bonus = automaton_bonus_level_by_main[player.equipment.main] or 0
+
+    return base_level + back_bonus + main_bonus
+end
+
+function broadcast_pup_pet_metadata()
+    local automaton_level = get_equipped_automaton_level()
+    if automaton_level == last_broadcast_pet_level then
+        return
+    end
+
+    last_broadcast_pet_level = automaton_level
+    windower.send_ipc_message(PUP_METADATA_IPC_PREFIX .. tostring(automaton_level or ''))
+end
+
+function broadcast_pup_pet_state()
+    if not state or not state.PetModeCycle or not state.PetStyleCycle then
+        return
+    end
+
+    local mode = state.PetModeCycle.current or ''
+    local style = state.PetStyleCycle.current or ''
+    local payload = mode .. ':' .. style
+
+    if payload == last_broadcast_pet_state then
+        return
+    end
+
+    last_broadcast_pet_state = payload
+    windower.send_ipc_message(PUP_STATE_IPC_PREFIX .. payload)
+end
+
+function broadcast_pup_runtime_metadata()
+    broadcast_pup_pet_metadata()
+    broadcast_pup_pet_state()
+end
+
 -- Watching for Zone Changes to reset certain sections
 windower.raw_register_event("zone change", function()
     reset_timers()
     pup_apply_stylelock()
+    last_broadcast_pet_level = nil
+    last_broadcast_pet_state = nil
 end)
 
 ----------------------------------------------------
@@ -276,6 +386,7 @@ function job_status_change(new, old)
     end
 
     handle_equipping_gear(player.status, Pet_State)
+    broadcast_pup_runtime_metadata()
 end
 
 function job_pet_status_change(new, old)
@@ -286,6 +397,7 @@ function job_pet_status_change(new, old)
     end
 
     handle_equipping_gear(player.status, Pet_State)
+    broadcast_pup_runtime_metadata()
 end
 
 function job_pet_aftercast(spell)
@@ -295,6 +407,7 @@ function job_pet_aftercast(spell)
     end
 
     handle_equipping_gear(player.status, pet.status)
+    broadcast_pup_runtime_metadata()
 end
 
 player_tracked_debuffs = {
@@ -605,6 +718,8 @@ function job_state_change(stateField, newValue, oldValue)
     elseif stateField == 'Treasure Mode' then
         main_text_hub.player_current_treasure = newValue -- Update HUB
     end
+
+    broadcast_pup_runtime_metadata()
 end
 
 -- Set eventArgs.handled to true if we don't want Gearswap's automatic display to run.

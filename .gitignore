@@ -1,0 +1,9 @@
+*
+!.gitignore
+!README.md
+!PUP.lua
+!PUP-LIB/
+!PUP-LIB/**
+!PUP-USER/
+PUP-USER/*
+!PUP-USER/template.lua
