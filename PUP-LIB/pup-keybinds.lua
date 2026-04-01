@@ -160,6 +160,11 @@ local default_actions = {
         command = "gs c toggle CP",
         label = nil
     },
+    treasure = {
+        key = "!t",
+        command = "gs c cycle TreasureMode",
+        label = nil
+    },
     clear = {
         key = "=",
         command = "gs c clear",
@@ -250,6 +255,7 @@ local function update_hub_keybinds(actions)
     labels.clear = actions.clear and actions.clear.label or ""
     labels.hub_keybinds = actions.hub_keybinds and actions.hub_keybinds.label or ""
     labels.cp = actions.cp and actions.cp.label or ""
+    labels.treasure = actions.treasure and actions.treasure.label or ""
 
     keybinds_on['key_bind_pet_mode'] = labels.pet_mode or ""
     keybinds_on['key_bind_pet_style'] = labels.pet_style or ""
@@ -268,6 +274,7 @@ local function update_hub_keybinds(actions)
     keybinds_on['key_bind_clear'] = labels.clear or ""
     keybinds_on['key_bind_hub_keybinds'] = labels.hub_keybinds or ""
     keybinds_on['key_bind_cp'] = labels.cp or ""
+    keybinds_on['key_bind_treasure'] = labels.treasure or ""
 
     keybinds_off['key_bind_pet_mode'] = ''
     keybinds_off['key_bind_pet_style'] = ''
@@ -286,6 +293,7 @@ local function update_hub_keybinds(actions)
     keybinds_off['key_bind_clear'] = ''
     keybinds_off['key_bind_hub_keybinds'] = ''
     keybinds_off['key_bind_cp'] = ''
+    keybinds_off['key_bind_treasure'] = ''
 end
 
 local function bind_actions(actions, enable_binds)

@@ -478,10 +478,10 @@ function job_state_change(stateField, newValue, oldValue)
         -- Handles changes to "Lock Weapon" toggle
     elseif stateField == "Lock Weapon" then
         if newValue == true then -- If Lock Weapon is ON
-            disable("main") -- Disable main weapon slot
+            disable("main", "range") -- Disable both weapon and animator slots
             main_text_hub.toggle_lock_weapon = const_on -- Update HUB
         else -- If Lock Weapon is OFF
-            enable("main") -- Enable main weapon slot
+            enable("main", "range") -- Re-enable both weapon and animator slots
             main_text_hub.toggle_lock_weapon = const_off -- Update HUB
             handle_equipping_gear(player.status, Pet_State) -- Re-evaluate gear
         end
@@ -533,6 +533,7 @@ function job_state_change(stateField, newValue, oldValue)
         else
             texts.update(main_text_hub, keybinds_off) -- Hide keybinds (set to empty strings)
         end
+        hideTextSections()
 
         -- Handles changes to 'Offense Mode' (e.g., MasterPet, Master, Trusts)
     elseif stateField == 'Offense Mode' then
@@ -549,6 +550,8 @@ function job_state_change(stateField, newValue, oldValue)
         -- Handles changes to 'Idle Mode' (e.g., Idle, MasterDT)
     elseif stateField == 'Idle Mode' then
         main_text_hub.player_current_idle = newValue -- Update HUB
+    elseif stateField == 'Treasure Mode' then
+        main_text_hub.player_current_treasure = newValue -- Update HUB
     end
 end
 
@@ -563,6 +566,10 @@ function display_current_job_state(eventArgs)
 
     if state.PetStyleCycle.value ~= "None" then
         msg = msg .. ", Pet Style: (" .. state.PetStyleCycle.value .. ")"
+    end
+
+    if state.TreasureMode and state.TreasureMode.value ~= "None" then
+        msg = msg .. ", Treasure: (" .. state.TreasureMode.value .. ")"
     end
 
     handle_equipping_gear(player.status, Pet_State)

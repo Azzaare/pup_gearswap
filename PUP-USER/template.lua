@@ -11,6 +11,7 @@ PUP_KEYBINDS = {
         -- Example conflict overrides:
         -- clear = { key = "insert", label = "INSERT" },
         -- cp = { key = "delete", label = "DELETE" },
+        -- treasure = { key = "!t", label = "ALT+T" },
         -- lock_weapon = { key = "scrolllock", label = "SCROLLLOCK" },
         -- custom_gear_lock = { key = "pause", label = "PAUSE" }
     },
@@ -437,6 +438,14 @@ function init_gear_sets()
     Backs.Dispersal_Mantle = {
         name = "Dispersal Mantle",
         augments = {'STR+3', 'DEX+1', 'Pet: TP Bonus+480'}
+    }
+
+    -- Optional Treasure Hunter scaffold.
+    -- Mote-TreasureHunter handles the mode logic; uncomment or replace the TH pieces you own.
+    sets.TreasureHunter = {
+        -- ammo = "Per. Lucky Egg",
+        -- waist = "Chaac Belt",
+        -- body = { name = "Herculean Vest", augments = {'Treasure Hunter +1'} },
     }
 
     --------------------------------------------------------------------------------

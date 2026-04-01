@@ -32,5 +32,6 @@ end
 
 function job_setup()
     include("PUP-LIB/pup-main.lua")
+    include("Mote-TreasureHunter")
     pet_weaponskill_setup()
 end

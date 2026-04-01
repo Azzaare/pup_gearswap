@@ -26,6 +26,7 @@ keybinds_on['key_bind_predict'] = '(ALT+F6)'
 keybinds_on['key_bind_clear'] = '(=)'
 keybinds_on['key_bind_hub_keybinds'] = '(PAGEDOWN)'
 keybinds_on['key_bind_cp'] = '(END)'
+keybinds_on['key_bind_treasure'] = '(ALT+T)'
 
 --[[
     This gets passed in when the Keybinds are turned off.
@@ -50,6 +51,7 @@ keybinds_off['key_bind_predict'] = ''
 keybinds_off['key_bind_clear'] = ''
 keybinds_off['key_bind_hub_keybinds'] = ''
 keybinds_off['key_bind_cp'] = ''
+keybinds_off['key_bind_treasure'] = ''
 
 --[[
     These below are used to fill in the different sections on the HUB window
@@ -82,6 +84,7 @@ hub_state_std = [[ \cs(255, 115, 0)======= State ============\cr
 
 hub_mode_std = [[ \cs(255, 115, 0)======= Mode ============\cr
 -\cs(125, 125, 0)Defense Status :\cr ${player_current_defense|None}
+-\cs(125, 125, 0)${key_bind_treasure} Treasure Mode :\cr ${player_current_treasure|None}
 -\cs(125, 125, 0)${key_bind_idle} Idle Mode :\cr ${player_current_idle|Idle}
 -\cs(125, 125, 0)${key_bind_offense} Offense Mode :\cr ${player_current_offense|MasterPet}
 -\cs(125, 125, 0)${key_bind_physical} Physical Mode :\cr ${player_current_physical|PetDT}
@@ -102,6 +105,17 @@ hub_options_std = [[ \cs(255, 115, 0)======= Options ==========\cr
 -\cs(125, 125, 0)${key_bind_hub_keybinds} Toggle Keybinds\cr
 ]]
 
+hub_options_std_compact = [[ \cs(255, 115, 0)======= Options ==========\cr
+-\cs(125, 125, 0)${key_bind_auto_maneuver} Auto Maneuver :\cr ${toggle_auto_maneuver|OFF}
+-\cs(125, 125, 0)${key_bind_pet_dt} Lock Pet DT Set :\cr ${toggle_lock_pet_dt_set|OFF}
+-\cs(125, 125, 0)${key_bind_lock_weapon} Lock Weapon :\cr ${toggle_lock_weapon|OFF}
+-\cs(125, 125, 0)${key_bind_set_ftp} Weaponskill FTP :\cr ${toggle_weaponskill_ftp|OFF}
+-\cs(125, 125, 0)${key_bind_custom_gear_lock} Custom Gear Lock :\cr ${toggle_custom_gear_lock|OFF}
+-\cs(125, 125, 0)${key_bind_auto_deploy} Auto Deploy :\cr ${toggle_auto_deploy|OFF}
+-\cs(125, 125, 0)${key_bind_cp} CP Mode :\cr ${toggle_cp|OFF}
+-\cs(125, 125, 0)${key_bind_hub_keybinds} Toggle Keybinds\cr
+]]
+
 --[[
     This is the Lite version of the hub setup
     _lte stands for Lite version
@@ -117,7 +131,7 @@ hub_state_lte = [[
 ]]
 
 hub_mode_lte = [[
-\cs(255, 115, 0)= Mode: \cr-\cs(125, 125, 0)Defense :\cr ${player_current_defense|None}-\cs(125, 125, 0)${key_bind_idle} Idle Mode :\cr ${player_current_idle|Idle}-\cs(125, 125, 0)${key_bind_offense} Offense Mode :\cr ${player_current_offense|MasterPet}-\cs(125, 125, 0)${key_bind_physical} Physical Mode :\cr ${player_current_physical|PetDT}-\cs(125, 125, 0)${key_bind_magical} Magical Mode :\cr ${player_current_magical|PetMDT}-\cs(125, 125, 0)${key_bind_hybrid} Hybrid Mode :\cr ${player_current_hybrid|Normal}
+\cs(255, 115, 0)= Mode: \cr-\cs(125, 125, 0)Defense :\cr ${player_current_defense|None}-\cs(125, 125, 0)${key_bind_treasure} Treasure :\cr ${player_current_treasure|None}-\cs(125, 125, 0)${key_bind_idle} Idle Mode :\cr ${player_current_idle|Idle}-\cs(125, 125, 0)${key_bind_offense} Offense Mode :\cr ${player_current_offense|MasterPet}-\cs(125, 125, 0)${key_bind_physical} Physical Mode :\cr ${player_current_physical|PetDT}-\cs(125, 125, 0)${key_bind_magical} Magical Mode :\cr ${player_current_magical|PetMDT}-\cs(125, 125, 0)${key_bind_hybrid} Hybrid Mode :\cr ${player_current_hybrid|Normal}
 ]]
 
 hub_options_lte = [[
@@ -130,6 +144,16 @@ hub_pet_skills = hub_pet_skills_std
 hub_state = hub_state_std
 hub_mode = hub_mode_std
 hub_options = hub_options_std
+
+local function refreshHubOptionTemplate()
+    if state and state.useLightMode and state.useLightMode.value then
+        hub_options = hub_options_lte
+    elseif state and state.Keybinds and not state.Keybinds.value then
+        hub_options = hub_options_std_compact
+    else
+        hub_options = hub_options_std
+    end
+end
 
 -- This handles drawing the Pet Skills for the text box
 local function updatePetSkills()
@@ -206,6 +230,11 @@ function updateTextInformation()
 
     -- Mode Information
     main_text_hub.player_current_defense = state.DefenseMode.current
+    if state.TreasureMode then
+        main_text_hub.player_current_treasure = state.TreasureMode.current
+    else
+        main_text_hub.player_current_treasure = 'None'
+    end
     main_text_hub.player_current_idle = state.IdleMode.current
     main_text_hub.player_current_offense = state.OffenseMode.current
     main_text_hub.player_current_physical = state.PhysicalDefenseMode.current
@@ -308,6 +337,7 @@ function setupTextWindow(pos_x, pos_y)
     main_text_hub = texts.new('', default_settings)
 
     -- Appends the different sections to the main_text_hub
+    refreshHubOptionTemplate()
     texts.append(main_text_hub, hub_pet_info)
     texts.append(main_text_hub, hub_pet_skills)
     texts.append(main_text_hub, hub_state)
@@ -343,7 +373,6 @@ function toggleHubStyle()
         hub_pet_skills = hub_pet_skills_lte
         hub_state = hub_state_lte
         hub_mode = hub_mode_lte
-        hub_options = hub_options_lte
     else
         hud_x_pos = pos_x
         hud_y_pos = pos_y
@@ -355,8 +384,8 @@ function toggleHubStyle()
         hub_pet_skills = hub_pet_skills_std
         hub_state = hub_state_std
         hub_mode = hub_mode_std
-        hub_options = hub_options_std
     end
+    refreshHubOptionTemplate()
     texts.pos(main_text_hub, hud_x_pos, hud_y_pos)
     texts.size(main_text_hub, hud_font_size)
     texts.pad(main_text_hub, hud_padding)
@@ -373,6 +402,7 @@ function hideTextSections()
 
     -- For now when hiding a section its easier to recreate the entire window
     texts.clear(main_text_hub)
+    refreshHubOptionTemplate()
 
     -- Append the different sections need back into the HUB
     texts.append(main_text_hub, hub_pet_info)
