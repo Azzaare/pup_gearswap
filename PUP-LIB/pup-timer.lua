@@ -24,6 +24,11 @@ function reset_timers()
     else
         texts.show(main_text_hub)
     end
+
+    -- Zoning can leave the correct idle set unapplied until a manual update.
+    -- A single early update is sometimes too soon, so refresh twice:
+    -- once shortly after zoning, then again after the area/status data settles.
+    send_command('wait 0.5;gs c update; wait 1.5;gs c update')
 end
 
 function startWeaponSkillPetTimer()

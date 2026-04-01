@@ -169,6 +169,10 @@ function user_setup()
     pos_x = 0
     pos_y = 500
     setupTextWindow(pos_x, pos_y)
+
+    -- On reload, force one normal GearSwap reevaluation so Town / pet-idle
+    -- logic settles the same way as a manual //gs c update.
+    send_command('wait 0.5;gs c update')
 end
 
 function file_unload()
@@ -1394,6 +1398,26 @@ function init_gear_sets()
         right_ring = "Yacuruna Ring",
         Visucius.MasterMEva
     }
+
+    -- Optional city-group override sample.
+    -- This will automatically be used in Eastern/Western Adoulin instead of sets.idle.Town.
+    -- You can also define exact-zone overrides with:
+    -- sets.idle.Town["Eastern Adoulin"] = set_combine(sets.idle.Town.Adoulin, {...})
+    sets.idle.Town.Adoulin = set_combine(sets.idle.Town, {
+        -- Add Adoulin-specific swaps here.
+    })
+
+    -- Optional city-group override sample for all Jeuno zones:
+    -- Ru'Lude Gardens, Upper Jeuno, Lower Jeuno, and Port Jeuno.
+    -- sets.idle.Town.Jeuno = set_combine(sets.idle.Town, {
+    --     -- Add Jeuno-specific swaps here.
+    -- })
+
+    -- Optional exact-zone override sample.
+    -- Exact zone names take priority over grouped city overrides.
+    -- sets.idle.Town["Aht Urhgan Whitegate"] = set_combine(sets.idle.Town, {
+    --     -- Add Whitegate-specific swaps here.
+    -- })
 
     -- Resting sets
     sets.resting = {

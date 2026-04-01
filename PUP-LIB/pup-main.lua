@@ -75,6 +75,37 @@ local function get_pet_idle_override_set(default_set)
     return default_set
 end
 
+local town_area_groups = {
+    Jeuno = S {"Ru'Lude Gardens", "Upper Jeuno", "Lower Jeuno", "Port Jeuno"},
+    Adoulin = S {"Eastern Adoulin", "Western Adoulin"},
+    Windurst = S {"Port Windurst", "Windurst Waters", "Windurst Woods", "Windurst Walls", "Heavens Tower"},
+    Bastok = S {"Port Bastok", "Bastok Markets", "Bastok Mines", "Metalworks"},
+    Sandoria = S {"Port San d'Oria", "Northern San d'Oria", "Southern San d'Oria"},
+    Whitegate = S {"Aht Urhgan Whitegate"},
+    OutpostTowns = S {"Tavnazian Safehold", "Nashmau", "Selbina", "Mhaura", "Norg", "Kazham", "Rabao", "Chocobo Circuit"}
+}
+
+local function get_town_override_set()
+    if not sets or not sets.idle or not sets.idle.Town or not world or not world.area then
+        return nil
+    end
+
+    local town_set = sets.idle.Town
+    local current_area = world.area
+
+    if town_set[current_area] then
+        return town_set[current_area]
+    end
+
+    for group_name, areas_set in pairs(town_area_groups) do
+        if areas_set:contains(current_area) and town_set[group_name] then
+            return town_set[group_name]
+        end
+    end
+
+    return nil
+end
+
 -- Used to determine what Hybrid Mode to use when Player Idle and Pet is Engaged
 function user_customize_idle_set(idleSet)
     if Master_State:lower() == const_stateIdle:lower() and Pet_State:lower() == const_stateEngaged:lower() then
@@ -90,6 +121,17 @@ function user_customize_idle_set(idleSet)
     else -- Otherwise return the idleSet with no changes from us
         return idleSet
     end
+end
+
+function customize_idle_set(idleSet)
+    if areas.Cities:contains(world.area) then
+        local town_override = get_town_override_set()
+        if town_override then
+            return set_combine(idleSet, town_override)
+        end
+    end
+
+    return idleSet
 end
 
 -- Used to determine what Hybrid Mode to use when Player is engaged for trusts only and Pet is Engaged
