@@ -26,6 +26,12 @@ PUP_KEYBINDS = {
     }
 }
 
+-- Optional personal style lock:
+-- - set to a single number: PUP_STYLELOCK_SETS = 20
+-- - or a list: PUP_STYLELOCK_SETS = {20, 21, 22}
+-- If a list is provided, PUP picks one randomly on load and on zone.
+PUP_STYLELOCK_SETS = nil
+
 function user_setup()
     -- Alt-F10 - Toggles Kiting Mode.
 

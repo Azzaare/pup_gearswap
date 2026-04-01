@@ -26,11 +26,63 @@ texts = require('texts')
 currentManeuvers = Q {}
 failedManeuvers = Q {}
 
+if not pup_random_seeded then
+    math.randomseed(os.time())
+    math.random()
+    math.random()
+    math.random()
+    pup_random_seeded = true
+end
+
 -- Seeds the time used to calculate various functions per second
 time_start = os.time()
 
+local function pick_pup_stylelock_set()
+    local configured_sets = rawget(_G, 'PUP_STYLELOCK_SETS')
+    if not configured_sets then
+        return nil
+    end
+
+    if type(configured_sets) == 'number' then
+        if configured_sets > 0 then
+            return math.floor(configured_sets)
+        end
+        return nil
+    end
+
+    if type(configured_sets) ~= 'table' then
+        return nil
+    end
+
+    local valid_sets = {}
+    for _, value in ipairs(configured_sets) do
+        local number_value = tonumber(value)
+        if number_value and number_value > 0 then
+            table.insert(valid_sets, math.floor(number_value))
+        end
+    end
+
+    if #valid_sets == 0 then
+        return nil
+    end
+
+    return valid_sets[math.random(#valid_sets)]
+end
+
+function pup_apply_stylelock()
+    local stylelock_set = pick_pup_stylelock_set()
+    if not stylelock_set then
+        return
+    end
+
+    send_command('wait 2;input /lockstyleset ' .. tostring(stylelock_set))
+end
+
 -- Watching for Zone Changes to reset certain sections
-windower.raw_register_event("zone change", reset_timers)
+windower.raw_register_event("zone change", function()
+    reset_timers()
+    pup_apply_stylelock()
+end)
 
 ----------------------------------------------------
 ----------Windower Hooks/Custom Gearswap------------
