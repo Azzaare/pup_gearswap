@@ -1,232 +1,224 @@
-# Recent Changes
-The entire structure is being reworked. I have started to pull out various functions into their own section within the PUP-LIB folder to help better maintain these various functions.
+# Puppetmaster GearSwap For Windower
 
-## More recent changes (by Azzaare)
-I have further refactored the code so that only files in `PUP-USER` should be modified by the users. The template should be copied and renamed as `user.lua`. Please change your sets and other settings in this file only.
+This README is for the PUP-specific GearSwap package located under:
+- `GearSwap/data/PUP-LIB`
+- `GearSwap/data/PUP-USER`
 
-Update to this GearSwap script can be done by either :
+## User File Model
+The intended workflow is:
+- keep library logic in `PUP-LIB`
+- keep your personal configuration and sets in `PUP-USER/user.lua`
 
-1. Pulling the git repository last version
-2. Downloading the last version and copy-pasting the content into the data folder
+You should only need to customize:
+- `GearSwap/data/PUP-USER/user.lua`
 
-In both cases, the `user.lua` file will not be overwritten. But you will still profit from the updates.
+This structure is meant to make updates easier, because the user file can be kept while the shared library files evolve.
 
-## Gearswap GUI
-Under Pet Skills the two have been renamed:
-- `Maneuver Queue` is now `Maneuvers Maintained`
-- `Current Queue` is now `Maneuvers To Recast`
+## Main Features
+This PUP GearSwap provides:
+- player gear sets
+- pet gear sets
+- pet WS gear timing support
+- pet mode and style prediction
+- maneuver maintenance support
+- hub / GUI support
+- configurable keybind display and bindings
+- optional coordination with AutoControl
 
-### Upcoming
-- Work on the Lite Version - Better support for screen sizes
-- Reworking the Mode section to reflect the exact mode you are in at the time (should allow for better visibility into the exact set you should have on) -- This may or may not work, still figuring out
+## PUP-Specific States
+This setup uses custom Puppetmaster-oriented state handling.
 
-## Pet Auto Equip Weaponskill Gear
-This has been completely reworked. This now properly locks from changing gear once threshold is hit and allows customizing.
+### Pet Modes
+- `TANK`
+- `DD`
+- `MAGE`
 
-This will only activate when the:
-    - PetMode is DD
-    - PetStyle is Spam, DD or Bone (regardless of PetMode)
-    - Player is not fighting or Offense Mode is Trusts
+### Pet Styles
+Current style cycles are split by mode:
 
-Two new defaults have been added and are changeable within the PUP.lua under job_setup() (don't have to go into the PUP-LIB at all for this):
-- `PET_MIN_TP_TO_WEAPONSKILL`
-    - This is to set the mininmum amount of TP you want your pet to have before equiping TP gear (pet is fighting only)
+- Tank styles:
+  - `NORMAL`
+  - `DD`
+  - `MAGIC`
+  - `SPAM`
 
-- `PET_GEAR_WEAPONSKILL_LOCKOUT_TIMER`
-    - This is the seconds of how long to keep the pet weaponskill gear equipped before reverting to previous set
+- DD styles:
+  - `NORMAL`
+  - `BONE`
+  - `SPAM`
+  - `OD`
+  - `ODACC`
 
-Two new commands have been introduced (this allows you to change the defauls temporarily)
-- `//gs c wstimer 5`
-    - This allows you the pass in the seconds that you will stay in the pet weaponskill gear while waiting on pet
-- `//gs c tpmin 850`
-    - This is when we will start the Pet Weaponskill Timer and first change into Pet Weapon Skill Gear
+- Mage styles:
+  - `NORMAL`
+  - `HEAL`
+  - `SUPPORT`
+  - `MB`
+  - `DD`
 
-## Auto Maneuver
-A few extra checks have been added to try and prevent any looping of maneuvers.
+These states are used to decide which player and pet gear sets are equipped.
 
-### Upcoming
-I am adding in a debuff tracker so we don't attempt to recast while under an effect that would prevent you from casting to start with.
+## Important Commands
 
-## Other
-Pet Predict will no longer happen when you press F12 - your gear will still reset
-- This can still be used with `//gs c predict`
+### Predict
+Attempts to determine the current puppet role from head/frame/attachments.
 
-Cycle Offense Mode (the offensive half of all 'hybrid' melee modes).
-- `F9`
-- `//gs c cycle OffenseMode`
-
-[Jump To Table of Contents](#puppet-gearswap-for-windower)
-
-## Hybrid Mode
-Used when you are Engaged with Pet
-Used when you are Idle and Pet is Engaged
-
-Cycle Hybrid Mode (the defensive half of all 'hybrid' melee modes).
-- `Ctrl+F9`
-- `//gs c cycle HybridMode`
-
-
-[Jump To Table of Contents](#puppet-gearswap-for-windower)
-
-## Defense Mode
-Cycle type of Physical Defense Mode in use.
-- `Ctrl+F10`
-- `//gs c cycle PhysicalDefenseMode`
-
-Activate emergency Physical Defense Mode. Replaces Magical Defense Mode, if that was active.
-- `F10`
-- `//gs c cycle PhysicalDefenseMode`
-
-Turns off any emergency defense mode.
-- `Alt+F12`
-- `//gs c cycle DefenseMode`
-
-[Jump To Table of Contents](#puppet-gearswap-for-windower)
-
-## Kiting Mode
-- `Alt+F10`
-- `//gs c toggle Kiting`
-
-[Jump To Table of Contents](#puppet-gearswap-for-windower)
-
-## Idle Mode
-Defaults to PetDT for when set to Idle
-
-Will set IdleMode to Idle when Pet becomes Engaged and you are Idle
-
-So, if you wish to go into a fight in MasterDT when first approaching to get Pet Engaged it will auto switch
-
-- `F12` - Update currently equipped gear, and report current status.
-- `Ctrl-F12` - Cycle Idle Mode.
-- `//gs c update`
-
-[Jump To Table of Contents](#puppet-gearswap-for-windower)
-
-## Lock Weapon
-This will lock your current weapon in place.
-- `Ctrl+tilda`
-- `//gs c toggle LockWeapon`
-
-[Jump To Table of Contents](#puppet-gearswap-for-windower)
-
-## Auto Maneuvers Toggle
-Currently, the way this works is it will simply recast the maneuver that wears off. This way you can cast any maneuvers you want and it will simply attempt to maintain what you have active.
-- `ALT + E`
-- `//gs c toggle AutoMan`
-
-[Jump To Table of Contents](#puppet-gearswap-for-windower)
-
-## Emergency Lock Pet DT Set
-This allows the user to lock the DT set for the pet in place and block all other gearswapping.
-- `ALT + D`
-- `//gs c toggle LockPetDT`
-
-[Jump To Table of Contents](#puppet-gearswap-for-windower)
-
-## Predict
-This will attempt to determine the currently equipped puppet and adjust the Pet Mode and Pet Style.
-- `Alt+F6`
 - `//gs c predict`
 
-[Jump To Table of Contents](#puppet-gearswap-for-windower)
+This is useful after manually changing attachments or when you want GearSwap to re-evaluate the current automaton role.
 
-## Pet Mode and Pet Styles
-This will change the mode of the pet and the style of the pet.
+### Auto Maneuver
+Toggles maintenance of currently active maneuvers.
 
-Current Modes for Pet are:
-- Tank
-- DD
-- Mage
+- `//gs c automan`
 
-[Jump To Table of Contents](#puppet-gearswap-for-windower)
+### Set FTP
+Toggles the FTP-oriented pet WS behavior used when relevant DD conditions are met.
 
-#### Current Styles
-These are the current styles that each Pet Mode contains:
-
-| Modes | Styles |||||
-|-------|--------|-------|---------|-------|-------|
-| Tank  | Normal | PDT   | MDT     | Range | DD    |
-| DD    | Normal | Bone  | Spam    | OD    | ODACC |
-| Mage  | Normal | Heal  | Support | MB    | DD    |
-
-Cycles forward on Pet Modes
-- `ALT+F7`
-- `//gs c cycle PetModeCycle`
-
-Cycles back on Pet Modes
-- `CTRL+F7`
-- `//gs c cycleback PetModecycle`
-
-Cycles forward on Pet Styles
-- `ALT+F8`
-- `//gs c cycle PetStyleCycle`
-
-Cycles backward on Pet Styles
-- `CTRL+F8`
-- `//gs c cycleback PetStyleCycle`
-
-[Jump To Table of Contents](#puppet-gearswap-for-windower)
-
-## SET FTP
-If player is idle and puppet is engaged while in DD Mode or a DD Style the puppet will now switch between a NO FTP and FTP set based on your choosing.
-
-Now have the ability to switch to FTP with the below command:
 - `//gs c setftp`
 
-## HUB Window
-You can hide the entire HUB Window by using the below command
+### Clear Maneuver Queue
+Clears the local list of maneuvers that GearSwap intends to recast.
+
+- `//gs c clear`
+
+### Pet Mode / Pet Style
+- `//gs c cycle PetModeCycle`
+- `//gs c cycleback PetModeCycle`
+- `//gs c cycle PetStyleCycle`
+- `//gs c cycleback PetStyleCycle`
+
+### HUB Controls
 - `//gs c hub all`
-
-You can hide the State from the Window by using the below command:
 - `//gs c hub state`
-
-You can hide the Mode from the Window by using the below command
 - `//gs c hub mode`
-
-You can hide the Options from the Window by using the below command
 - `//gs c hub options`
-
-You can toggle default keybinds set up for cycles/modes on menu by using the below command
 - `//gs c hub keybinds`
-
-You can activate the lite mode using:
 - `//gs c hub lite`
 
-## Notes On Pet Equipping Weaponskill Gear
-This is currently how we determine when to equip a pets Weaponskill Gear prior to it using:
+### Utility Commands
+- `//gs c wstimer <seconds>`
+- `//gs c tpmin <tp>`
 
-When the player has less than 1000 TP we will skip equipping the Pets Weaponskill Gear unless the pet is in PetStyle SPAM or DD, otherwise if player has TP we equip the Pets Weaponskill after the player.
+## Keybinds
+The PUP user file now supports user-side keybind configuration.
 
-The gearswap will further check the PetMode for:
-- If PetMode is Tank and the Style is NOT set to DD or SPAM.
-      - The gearswap will not equip Pet Weaponskill Gear
-- If PetMode is Mage
-      - The gearswap will not equip Pet Weaponskill Gear
+That means:
+- the logic lives in the library
+- the actual binding choices live in `GearSwap/data/PUP-USER/user.lua`
 
-If we pass the above checks then the gearswap will equip Pet Weaponskill Gear prior to the pet using its weaponskill.
+This allows:
+- AZERTY / QWERTY customization
+- personal remapping
+- hub labels matching your configured keys
 
-[Jump To Table of Contents](#puppet-gearswap-for-windower)
+If your binds conflict with another addon, edit them in:
+- `GearSwap/data/PUP-USER/user.lua`
 
-## Notes on Equipping Enmity Gear
-This is how we determine to equip pet enmity gear:
+## Idle / Engaged / Pet Sets
+This GearSwap uses standard player sets plus additional pet-engaged logic.
 
-If a Fire or Light Maneuver is active and the pet has any of the following attachments:
-- Strobe
-- Strobe II
-- Flashbulb
+Examples of common set families already supported in the user file:
+- idle
+- regen idle
+- refresh idle
+- master DT
+- master melee
+- master + pet melee
+- pet engaged
+- pet WS
+- pet tanking
+- pet magic
+- overdrive variants
 
-We will equip enmity gear when the recast time is less than 2 seconds. Once the pet uses its ability
-then the player will revert back to the previous gear.
+The user file is expected to contain your actual gear choices and comments about String Theory mapping or missing upgrades.
 
-One item to be aware of is that this currenly reads the chat log for when the pet performs the skill. If you are out of range of seeing this message then you have chance to simply staying in Enmity Gear. If you need to be futher way, then you want to consider locking in Pet DT Gear.
+## Optional Relation With AutoControl
+This PUP GearSwap has an optional and non-required relationship with the AutoControl addon.
 
-[Jump To Table of Contents](#puppet-gearswap-for-windower)
+### What AutoControl Handles
+AutoControl is better suited for:
+- automaton head / frame / attachment loadouts
+- named attachment preset management
+- swapping attachment families quickly
 
-## TODO
-- [ ] Add the ability to change Attachments with AutoControl Windower Addon
+### What This GearSwap Handles
+This PUP GearSwap is better suited for:
+- master gear
+- pet gear
+- pet WS gear logic
+- mode / style states
+- hub display
+- lock states and player-side controls
 
-[Jump To Table of Contents](#puppet-gearswap-for-windower)
-### Upcoming
-- Add support for Aftermath Sets
-- Investigate logic around Enmity Sets - I want to make sure we don't stay in this to long, it may be better to miss a swap than stay in this for to long, may need to look into tracking debuffs on pet
-- Investigate leveraging Packets over watching Chat for certain items
+### How They Work Together
+When both addons are loaded:
+- AutoControl can equip a built-in String Theory attachment family
+- AutoControl then sends a lightweight IPC hint
+- this PUP GearSwap can update its `PetModeCycle` / `PetStyleCycle` to match the selected attachment family
+
+This is intentionally limited in scope:
+- AutoControl does not take over player gear logic
+- GearSwap does not take over attachment management
+- the integration is there only to keep both systems coherent
+
+### If AutoControl Is Missing
+Nothing breaks.
+
+This GearSwap still works normally:
+- all player gear logic still works
+- all pet gear logic still works
+- prediction can still be done manually with `//gs c predict`
+
+### If GearSwap Is Missing
+AutoControl still works normally on its own for attachment management.
+
+### Why This Matters
+The goal is cooperation, not dependency.
+
+You can use:
+- only GearSwap
+- only AutoControl
+- both together
+
+without forcing one addon to exist for the other to function.
+
+## AutoControl-Specific Commands Recognized By GearSwap
+The PUP GearSwap also exposes a small helper command:
+
+- `//gs c acprofile <profile>`
+
+This is mainly useful for testing the AutoControl integration manually.
+
+Examples:
+- `//gs c acprofile st_overdrive`
+- `//gs c acprofile st_black_mage`
+
+Normally you do not need this during regular use, because AutoControl sends the profile hint automatically when appropriate.
+
+## Notes About Prediction
+Prediction is based on current pet head/frame/attachments and is meant to be practical rather than perfect.
+
+This means:
+- some families map cleanly
+- some flexible String Theory variants intentionally still map to the same GearSwap mode/style
+
+For example:
+- several overdrive variants still resolve to the same DD overdrive style family
+- multiple tank flex variants may still resolve to the same tank style
+
+That is expected, because the purpose is to keep gear selection coherent, not to encode every attachment nuance as a separate full GearSwap mode.
+
+## Maintenance Notes
+If you update this package:
+- preserve `GearSwap/data/PUP-USER/user.lua`
+- review `PUP-LIB` changes as library updates
+- re-check custom binds and comments if a newer version changes hub fields or state names
+
+## Recommended Usage Pattern
+If you use both addons, the practical flow is:
+
+1. Use AutoControl to manage attachment presets.
+2. Let GearSwap handle player and pet gear.
+3. Use `//gs c predict` manually only when needed.
+4. Keep your personal tuning in `GearSwap/data/PUP-USER/user.lua`.

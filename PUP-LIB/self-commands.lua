@@ -114,6 +114,21 @@ local function handle_tp_min(commandArgs)
 
 end
 
+local function handle_autocontrol_profile(commandParams)
+    if #commandParams == 0 then
+        add_to_chat(123, 'PUP-LIB: AutoControl profile not specified.')
+        return
+    end
+
+    local profile_name = table.remove(commandParams, 1)
+
+    if apply_autocontrol_profile then
+        apply_autocontrol_profile(profile_name, false)
+    else
+        add_to_chat(123, 'PUP-LIB: AutoControl profile handler is unavailable.')
+    end
+end
+
 pup_self_commands = {
     ['automan'] = handle_automan,
     ['predict'] = handle_predict,
@@ -124,5 +139,7 @@ pup_self_commands = {
     ['customgearlock'] = handle_custom_gear_lock,
     ['clear'] = handle_clear_manuever,
     ['wstimer'] = handle_ws_timer,
-    ['tpmin'] = handle_tp_min
+    ['tpmin'] = handle_tp_min,
+    ['autocontrolprofile'] = handle_autocontrol_profile,
+    ['acprofile'] = handle_autocontrol_profile
 }

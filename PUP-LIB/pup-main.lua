@@ -5,10 +5,12 @@
 --------Internal Libraries-------
 ---------------------------------
 require('PUP-LIB/pup-gui')
+require('PUP-LIB/pup-keybinds')
 require('PUP-LIB/pup-utility')
 require('PUP-LIB/pet-tp')
 require('PUP-LIB/self-commands')
 require('PUP-LIB/pup-global')
+require('PUP-LIB/pup-autocontrol')
 require('PUP-LIB/pup-timer')
 
 ---------------------------------
@@ -34,15 +36,30 @@ windower.raw_register_event("zone change", reset_timers)
 ----------Windower Hooks/Custom Gearswap------------
 ----------------------------------------------------
 
+local function get_pet_engaged_override_set(default_set)
+    if not sets or not sets.idle or not sets.idle.Pet or not sets.idle.Pet.Engaged then
+        return default_set
+    end
+
+    local engaged_set = sets.idle.Pet.Engaged
+    local pet_style = state.PetStyleCycle and state.PetStyleCycle.current or nil
+    local hybrid_mode = state.HybridMode and state.HybridMode.current or nil
+
+    if pet_style and engaged_set[pet_style] then
+        return engaged_set[pet_style]
+    end
+
+    if hybrid_mode and hybrid_mode ~= "Normal" and engaged_set[hybrid_mode] then
+        return engaged_set[hybrid_mode]
+    end
+
+    return default_set
+end
+
 -- Used to determine what Hybrid Mode to use when Player Idle and Pet is Engaged
 function user_customize_idle_set(idleSet)
     if Master_State:lower() == const_stateIdle:lower() and Pet_State:lower() == const_stateEngaged:lower() then
-        if state.HybridMode.current == "Normal" then -- If Hybrid Mode is Normal then simply return the set
-            return idleSet
-        else
-            idleSet = sets.idle.Pet.Engaged[state.HybridMode.current] -- When Pet is engaged we pass in the Hybrid Mode to match to an existing set
-            return idleSet
-        end
+        return get_pet_engaged_override_set(idleSet)
     else -- Otherwise return the idleSet with no changes from us
         return idleSet
     end
@@ -52,13 +69,8 @@ end
 function user_customize_melee_set(meleeSet)
     if (Master_State:lower() == const_stateEngaged:lower() and state.OffenseMode.value == "Trusts") and
         Pet_State:lower() == const_stateEngaged:lower() then
-        if state.HybridMode.current == "Normal" then -- If Hybrid Mode is Normal then simply return the set
-            meleeSet = sets.idle.Pet.Engaged
-            return meleeSet
-        else
-            meleeSet = sets.idle.Pet.Engaged[state.HybridMode.current] -- When Pet is engaged we pass in the Hybrid Mode to match to an existing set
-            return meleeSet
-        end
+        meleeSet = sets.idle.Pet.Engaged
+        return get_pet_engaged_override_set(meleeSet)
     else -- Otherwise return the idleSet with no changes from us
         return meleeSet
     end

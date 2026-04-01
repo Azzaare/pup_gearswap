@@ -1,3 +1,30 @@
+-- PUP template configuration
+-- Keep personal tweaks in user.lua. This template should stay generic and safe for sharing.
+--
+-- Keybind configuration:
+-- layout: "auto", "azerty", or "qwerty"
+-- By default this defers to the shared PUP keybind library and stays QWERTY-safe.
+PUP_KEYBINDS = {
+    layout = "auto",
+    enable_binds = true,
+    binds = {
+        -- Example conflict overrides:
+        -- clear = { key = "insert", label = "INSERT" },
+        -- cp = { key = "delete", label = "DELETE" },
+        -- lock_weapon = { key = "scrolllock", label = "SCROLLLOCK" },
+        -- custom_gear_lock = { key = "pause", label = "PAUSE" }
+    },
+    labels = {
+        -- If you changed Mote default keybinds, update labels here:
+        -- idle = "CTRL+F12",
+        -- offense = "F9",
+        -- physical = "CTRL+F10",
+        -- magical = "F11",
+        -- hybrid = "CTRL+F9",
+        -- custom_gear_lock = "PAUSE"
+    }
+}
+
 function user_setup()
     -- Alt-F10 - Toggles Kiting Mode.
 
@@ -39,7 +66,7 @@ function user_setup()
 
         Will automatically set IdleMode to Idle when Pet becomes Engaged and you are Idle
     ]]
-    state.IdleMode:options("Idle", "MasterDT")
+    state.IdleMode:options("Idle", "Regen", "Refresh", "MasterDT")
 
     -- Various Cycles for the different types of PetModes
     state.PetStyleCycleTank = M {"NORMAL", "DD", "MAGIC", "SPAM"}
@@ -133,19 +160,8 @@ function user_setup()
     -- Example customGearLock = T{"head", "waist"}
     customGearLock = T {}
 
-    send_command("bind !f7 gs c cycle PetModeCycle")
-    send_command("bind ^f7 gs c cycleback PetModeCycle")
-    send_command("bind !f8 gs c cycle PetStyleCycle")
-    send_command("bind ^f8 gs c cycleback PetStyleCycle")
-    send_command("bind !e gs c toggle AutoMan")
-    send_command("bind !d gs c toggle LockPetDT")
-    send_command("bind !f6 gs c predict")
-    send_command("bind ^` gs c toggle LockWeapon")
-    send_command("bind home gs c toggle setftp")
-    send_command("bind PAGEUP gs c toggle autodeploy")
-    send_command("bind PAGEDOWN gs c hide keybinds")
-    send_command("bind end gs c toggle CP")
-    send_command("bind = gs c clear")
+    -- Apply stable direct keybinds, keeping the old physical positions.
+    pup_apply_keybinds(PUP_KEYBINDS)
 
     select_default_macro_book()
 
@@ -156,19 +172,15 @@ function user_setup()
 end
 
 function file_unload()
-    send_command("unbind !f7")
-    send_command("unbind ^f7")
-    send_command("unbind !f8")
-    send_command("unbind ^f8")
-    send_command("unbind !e")
-    send_command("unbind !d")
-    send_command("unbind !f6")
-    send_command("unbind ^`")
-    send_command("unbind home")
-    send_command("unbind PAGEUP")
-    send_command("unbind PAGEDOWN")
-    send_command("unbind end")
-    send_command("unbind =")
+    pup_unbind_keys()
+end
+
+function customize_midcast_set(midcastSet, spell, spellMap)
+    if spellMap == "Cure" and spell.target and spell.target.type == "SELF" and sets.midcast.CureSelf then
+        midcastSet = set_combine(midcastSet, sets.midcast.CureSelf)
+    end
+
+    return midcastSet
 end
 
 function pet_weaponskill_setup()
@@ -179,6 +191,10 @@ function pet_weaponskill_setup()
 end
 
 function init_gear_sets()
+    -- Template note:
+    -- Active gear lines below are a practical baseline based on the updated PUP profile.
+    -- Many sets also include optional String Theory BiS comments so users can upgrade or
+    -- uncomment preferred pieces as they obtain them.
     -- Table of Contents
     ---Gear Variables
     ---Master Only Sets
@@ -198,43 +214,225 @@ function init_gear_sets()
         This section is best ultilized for defining gear that is used among multiple sets
         You can simply use or ignore the below
     ]]
+    Weapons = {}
+    Weapons.Kenkonken = {
+        name = "Kenkonken",
+        augments = {'Path: A'}
+    }
+    Weapons.Ohtas = {
+        name = "Ohtas",
+        augments = {'Accuracy+70', 'Pet: Accuracy+70', 'Pet: Haste+10%'}
+    }
+    Weapons.Xiucoatl = {
+        name = "Xiucoatl",
+        augments = {'Path: C'}
+    }
+    Weapons.Ohrmazd = {
+        name = "Ohrmazd",
+        augments = {'Pet: Mag. Evasion+15', 'Pet: Phys. dmg. taken -4%', 'Pet: STR+13 Pet: DEX+13 Pet: VIT+13'}
+    }
+
     Animators = {}
-    Animators.Range = "Animator P II"
+    Animators.Range = "Animator P II +1"
     Animators.Melee = "Animator P +1"
+    Animators.Oil = "Automat. Oil +3"
 
     -- Adjust to your reforge level
     -- Sets up a Key, Value Pair
     Artifact_Foire = {}
-    Artifact_Foire.Head_PRegen = "Foire Taj +1"
+    Artifact_Foire.Head_PRegen = "Foire Taj +1" -- missing
     Artifact_Foire.Body_WSD_PTank = "Foire Tobe +1"
     Artifact_Foire.Hands_Mane_Overload = "Foire Dastanas +1"
-    Artifact_Foire.Legs_PCure = "Foire Churidars +1"
+    Artifact_Foire.Legs_PCure = "Foire Churidars +2"
     Artifact_Foire.Feet_Repair_PMagic = "Foire Babouches +1"
 
     Relic_Pitre = {}
-    Relic_Pitre.Head_PRegen = "Pitre Taj +2" -- Enhances Optimization
-    Relic_Pitre.Body_PTP = "Pitre Tobe +2" -- Enhances Overdrive
-    Relic_Pitre.Hands_WSD = "Pitre Dastanas +2" -- Enhances Fine-Tuning
-    Relic_Pitre.Legs_PMagic = "Pitre Churidars +2" -- Enhances Ventriloquy
-    Relic_Pitre.Feet_PMagic = "Pitre Babouches +1" -- Role Reversal
+    Relic_Pitre.Head_PRegen = "Pitre Taj +3" -- Enhances Optimization
+    Relic_Pitre.Body_PTP = "Pitre Tobe +3" -- Enhances Overdrive
+    Relic_Pitre.Hands_WSD = "Pitre Dastanas +3" -- Enhances Fine-Tuning
+    Relic_Pitre.Legs_PMagic = "Pitre Churidars +3" -- Enhances Ventriloquy
+    Relic_Pitre.Feet_PMagic = "Pitre Babouches +3" -- Role Reversal
 
     Empy_Karagoz = {}
-    Empy_Karagoz.Head_PTPBonus = "Karagoz Capello"
-    Empy_Karagoz.Body_Overload = "Karagoz Farsetto"
-    Empy_Karagoz.Hands = "Karagoz Guanti"
+    Empy_Karagoz.Head_PTPBonus = "Karagoz Capello +1"
+    Empy_Karagoz.Body_Overload = "Karagoz Farsetto +1" -- missing
+    Empy_Karagoz.Hands = "Karagoz Guanti +1"
     Empy_Karagoz.Legs_Combat = "Karagoz Pantaloni +1"
-    Empy_Karagoz.Feet_Tatical = "Karagoz Scarpe +1"
+    Empy_Karagoz.Feet_Tatical = "Karagoz Scarpe +1" -- missing
+
+    Rao = {}
+    Rao.Head_Kabuto = {
+        name = "Rao Kabuto +1",
+        augments = {"Pet: HP+125", "Pet: Accuracy+20", "Pet: Damage taken -4%"}
+    }
+    Rao.Body_Togi = {
+        name = "Rao Togi +1",
+        augments = {"Pet: HP+125", "Pet: Accuracy+20", "Pet: Damage taken -4%"}
+    }
+    Rao.Hands_Kote = {
+        name = "Rao Kote +1",
+        augments = {"Pet: HP+125", "Pet: Accuracy+20", "Pet: Damage taken -4%"}
+    }
+    Rao.Legs_Haidate = {
+        name = "Rao Haidate +1",
+        augments = {"Pet: HP+125", "Pet: Accuracy+20", "Pet: Damage taken -4%"}
+    }
+    Rao.Feet_Sune_Ate = {
+        name = "Rao Sune-Ate +1",
+        augments = {'Pet: HP+125', 'Pet: Accuracy+20', 'Pet: Damage taken -4%'}
+    }
+
+    Herculean = {}
+    Herculean.HeadPet = {
+        name = "Herculean Helm",
+        augments = {'Pet: Mag. Acc.+8', 'Pet: "Store TP"+10', 'Pet: Attack+14 Pet: Rng.Atk.+14'}
+    }
+    Herculean.HandsMaster = {
+        name = "Herculean Gloves",
+        augments = {'Attack+15', '"Triple Atk."+4', 'DEX+9', 'Accuracy+5'}
+    }
+    Herculean.HandsPet = {
+        name = "Herculean Gloves",
+        augments = {'Pet: Accuracy+2 Pet: Rng. Acc.+2', 'Pet: "Store TP"+10', 'Pet: INT+1',
+                    'Pet: Attack+14 Pet: Rng.Atk.+14', 'Pet: "Mag.Atk.Bns."+13'}
+    }
+    Herculean.LegsPet = {
+        name = "Herculean Trousers",
+        augments = {'Pet: Accuracy+22 Pet: Rng. Acc.+22', 'Pet: "Dbl. Atk."+5', 'Pet: AGI+8'}
+    }
+    Herculean.FeetMasterAtt = {
+        name = "Herculean Boots",
+        augments = {'Accuracy+28', '"Triple Atk."+4', 'STR+5', 'Attack+13'}
+    }
+    Herculean.FeetMasterCrit = {
+        name = "Herculean Boots",
+        augments = {'Rng.Acc.+16', 'Crit. hit damage +4%', 'DEX+9', 'Accuracy+3', 'Attack+14'}
+    }
+
+    Naga = {}
+    Naga.Head = {
+        name = "Naga Somen",
+        augments = {'Pet: MP+80', 'Automaton: "Cure" potency +4%', 'Automaton: "Fast Cast"+3'}
+    }
+    Naga.Body = {
+        name = "Naga Samue",
+        augments = {'Pet: MP+80', 'Automaton: "Cure" potency +4%', 'Automaton: "Fast Cast"+3'}
+    }
+    Naga.Hands = {
+        name = "Naga Tekko",
+        augments = {'Pet: MP+80', 'Automaton: "Cure" potency +4%', 'Automaton: "Fast Cast"+3'}
+    }
+    Naga.Feet_Cure = {
+        name = "Naga Kyahan",
+        augments = {'Pet: MP+80', 'Automaton: "Cure" potency +4%', 'Automaton: "Fast Cast"+3'}
+    }
+    Naga.Feet = {
+        name = "Naga Kyahan",
+        augments = {'Pet: HP+100', 'Pet: Accuracy+25', 'Pet: Attack+25'}
+    }
+
+    Ryuo = {}
+    Ryuo.Head = {
+        name = "Ryuo Somen +1",
+        augments = {'HP+65', '"Store TP"+5', '"Subtle Blow"+8'}
+    }
+    Ryuo.Hands = {
+        name = "Ryuo Tekko +1",
+        augments = {'STR+12', 'DEX+12', 'Accuracy+20'}
+    }
+    Ryuo.Legs = {
+        name = "Ryuo Hakama +1",
+        augments = {'Accuracy+25', '"Store TP"+5', 'Phys. dmg. taken -4'}
+    }
+
+    Taliah = {}
+    Taliah.Head = "Tali'ah Turban +2"
+    Taliah.Body = "Tali'ah Manteel +2"
+    Taliah.Hands = "Tali'ah Gages +2"
+    Taliah.Legs = "Tali'ah Sera. +2"
+    Taliah.Feet = "Tali'ah Crackows +2"
+    Taliah.Ring = "Tali'ah Ring"
+
+    Hizamaru = {}
+    Hizamaru.Head = "Hiza. Somen +2"
+    Hizamaru.Body = "Hiza. Haramaki +2"
+    Hizamaru.Hands = "Hizamaru Kote +2"
+    Hizamaru.Legs = "Hiza. Hizayoroi +2"
+    Hizamaru.Feet = "Hiza. Sune-Ate +2"
+    Hizamaru.Ring = "Hizamaru Ring"
+
+    Heyoka = {}
+    Heyoka.Head = "Heyoka Cap +1"
+    Heyoka.Body = "He. Harness +1"
+    Heyoka.Hands = "He. Mittens +1"
+    Heyoka.Legs = "Heyoka Subligar +1"
+    Heyoka.Feet = "He. Leggings +1"
+
+    Taeon = {}
+    Taeon.Head = {
+        name = "Taeon Chapeau",
+        augments = {'Pet: Accuracy+22 Pet: Rng. Acc.+22', 'Pet: "Dbl. Atk."+5', 'Pet: Damage taken -4%'}
+    }
+    Taeon.Body = {
+        name = "Taeon Tabard",
+        augments = {'Pet: Accuracy+22 Pet: Rng. Acc.+22', 'Pet: "Dbl. Atk."+5', 'Pet: Damage taken -4%'}
+    }
+    Taeon.Hands = {
+        name = "Taeon Gloves",
+        augments = {'Pet: Accuracy+25 Pet: Rng. Acc.+25', 'Pet: "Dbl. Atk."+5', 'Pet: Damage taken -4%'}
+    }
+    Taeon.Legs = {
+        name = "Taeon Tights",
+        augments = {'Pet: Accuracy+22 Pet: Rng. Acc.+22', 'Pet: "Dbl. Atk."+5', 'Pet: Damage taken -4%'}
+    }
+    Taeon.Feet = {
+        name = "Taeon Boots",
+        augments = {'Pet: Accuracy+24 Pet: Rng. Acc.+24', 'Pet: "Dbl. Atk."+5', 'Pet: Damage taken -4%'}
+    }
 
     Visucius = {}
-    Visucius.PetDT = {
+    Visucius.PetMDT = {
         name = "Visucius's Mantle",
-        augments = {"Pet: Acc.+20 Pet: R.Acc.+20 Pet: Atk.+20 Pet: R.Atk.+20", "Accuracy+20 Attack+20",
-                    "Pet: Accuracy+4 Pet: Rng. Acc.+4", 'Pet: "Regen"+10', "Pet: Damage taken -5%"}
+        augments = {'Pet: Acc.+20 Pet: R.Acc.+20 Pet: Atk.+20 Pet: R.Atk.+20', 'Accuracy+20 Attack+20',
+                    'Pet: "Regen"+10', 'Pet: Magic dmg. taken-10%'}
     }
-    Visucius.PetMagic = {
+    Visucius.MasterMEva = {
         name = "Visucius's Mantle",
-        augments = {"Pet: Acc.+20 Pet: R.Acc.+20 Pet: Atk.+20 Pet: R.Atk.+20", "Accuracy+20 Attack+20",
-                    "Pet: Accuracy+4 Pet: Rng. Acc.+4", 'Pet: "Regen"+10', "Pet: Damage taken -5%"}
+        augments = {'Mag. Evasion+15'}
+    }
+    Visucius.PetTP = {
+        name = "Visucius's Mantle",
+        augments = {'Pet: Acc.+20 Pet: R.Acc.+20 Pet: Atk.+20 Pet: R.Atk.+20', 'Accuracy+20 Attack+20', 'Pet: Haste+10'}
+    }
+    Visucius.MasterWSCrit = {
+        name = "Visucius's Mantle",
+        augments = {'STR+20', 'Accuracy+20 Attack+20', 'STR+10', 'Crit.hit rate+10'}
+    }
+    Visucius.MasterDA = {
+        name = "Visucius's Mantle",
+        augments = {'STR+20', 'Accuracy+20 Attack+20', 'Accuracy+10', '"Dbl.Atk."+10'}
+    }
+    Visucius.PetMA = {
+        name = "Visucius's Mantle",
+        augments = {'Pet: M.Acc.+20 Pet: M.Dmg.+20', 'Pet: Magic Damage+10'}
+    }
+
+    Earrings = {}
+    Earrings.Moonshade = {
+        name = "Moonshade Earring",
+        augments = {'Attack+4', 'TP Bonus +250'}
+    }
+
+    Heads = {}
+    Heads.Salad = {
+        name = "Anwig Salade",
+        augments = {'Attack+3', 'Pet: Damage taken -10%', 'Attack+3', 'Pet: "Regen"+1'}
+    }
+
+    Backs = {}
+    Backs.Dispersal_Mantle = {
+        name = "Dispersal Mantle",
+        augments = {'STR+3', 'DEX+1', 'Pet: TP Bonus+480'}
     }
 
     --------------------------------------------------------------------------------
@@ -251,7 +449,42 @@ function init_gear_sets()
     --[[
         Will be activated when Pet is not active, otherwise refer to sets.idle.Pet
     ]]
-    sets.idle = {}
+    sets.idle = {
+        main = Weapons.Kenkonken,
+        range = Animators.Melee,
+        ammo = Animators.Oil,
+        head = Hizamaru.Head,
+        body = Hizamaru.Body,
+        hands = Hizamaru.Hands,
+        legs = Hizamaru.Legs,
+        feet = Hizamaru.Feet,
+        neck = "Adad Amulet",
+        waist = "Moonbow Belt +1",
+        left_ear = "Eabani Earring",
+        right_ear = "Domes. Earring",
+        left_ring = Hizamaru.Ring,
+        right_ring = "Yacuruna Ring",
+        Visucius.MasterMEva
+    }
+
+    -- String Theory: Idle (Regen)
+    -- Purpose: master idle set with passive sustain / natural regen between pulls.
+    -- Optional String Theory BiS upgrades: Denouements, Pitre Taj +3, Bathy Choker +1, Chirich Ring +1.
+    sets.idle.Regen = set_combine(sets.idle, {
+        left_ear = "Infused Earring",
+        right_ring = "Setae Ring",
+        back = "Moonbeam Cape"
+    })
+
+    -- String Theory: Idle (Refresh)
+    -- Purpose: master idle set focused on refresh / MP recovery.
+    -- Optional String Theory BiS upgrades: Denouements, Rawhide Mask, Vrikodara Jupon, Stikini Ring +1, Fucho-no-Obi, Assid. Pants +1.
+    sets.idle.Refresh = set_combine(sets.idle, {
+        head = Naga.Head,
+        body = Naga.Body,
+        hands = Naga.Hands,
+        feet = Naga.Feet_Cure
+    })
 
     -------------------------------------Fastcast
     sets.precast.FC = {
@@ -265,15 +498,43 @@ function init_gear_sets()
         -- Add your set here
     }
 
+    -- String Theory: Cure Potency
+    -- Purpose: cures cast by the master. Standard healing baseline.
+    sets.midcast.Cure = set_combine(sets.precast.FC, {
+        head = "Ipoca Beret",
+        neck = "Incanter's Torque",
+        left_ear = "Mendi. Earring",
+        right_ear = "Meili Earring",
+        body = "Vrikodara Jupon",
+        hands = "Weath. Cuffs +1",
+        left_ring = "Sirona's Ring",
+        right_ring = "Lebeche Ring",
+        back = Visucius.MasterMEva,
+        waist = "Bishop's Sash",
+        legs = "Gyve Trousers",
+        feet = "Regal Pumps +1"
+    })
+
+    -- String Theory: Cure Potency Received
+    -- Purpose: self-cures. Layered on top of the base Cure set via customize_midcast_set().
+    sets.midcast.CureSelf = set_combine(sets.midcast.Cure, {
+        main = "Eshus",
+        neck = "Phalaina Locket",
+        left_ear = "Oneiros Earring",
+        left_ring = "Kunaji Ring",
+        right_ring = "Asklepian Ring",
+        waist = "Gishdubar Sash"
+    })
+
     -------------------------------------Kiting
     sets.Kiting = {
-        feet = "Hermes' Sandals"
+        -- feet = "Hermes' Sandals"
     }
 
     -------------------------------------JA
     sets.precast.FC.Utsusemi = set_combine(sets.precast.FC, {
-        neck = "Magoraga Beads",
-        body = "Passion Jacket"
+        -- neck = "Magoraga Beads",
+        -- body = "Passion Jacket"
     })
 
     -- Precast sets to enhance JAs
@@ -295,27 +556,44 @@ function init_gear_sets()
         body = Relic_Pitre.Body_PTP
     }
 
+    -- String Theory: intentional mix of "Repair Potency" and "Pet +Max HP"
+    -- Purpose: hybrid Repair set, balancing stronger healing with pet max HP.
+    -- Optional String Theory BiS upgrades: Nibiru Sainti, Pratik Earring, Foire Babouches +3, Foire Tobe +3, Gnafron's Adargas.
     sets.precast.JA["Repair"] = {
-        ammo = "Automat. Oil +3",
-        feet = Artifact_Foire.Feet_Repair_PMagic
+        ammo = Animators.Oil,
+        head = Rao.Head_Kabuto,
+        body = Herculean.Body_Repair,
+        hands = Rao.Hands_Kote,
+        legs = "Desultor Tassets",
+        feet = Artifact_Foire.Feet_Repair_PMagic,
+        left_ear = "Guignol Earring",
+        right_ring = "Overbearing Ring",
+        back = Visucius
     }
 
     sets.precast.JA["Maintenance"] = set_combine(sets.precast.JA["Repair"], {})
 
+    -- String Theory: Maneuvers
+    -- Purpose: overload suppression / duration / comfort set for maneuver spam.
+    -- Optional String Theory BiS upgrades: Kara. Farsetto +2, Foire Dastanas +3.
     sets.precast.JA.Maneuver = {
-        neck = "Buffoon's Collar +1",
-        body = "Karagoz Farsetto",
+        main = Weapons.Kenkonken,
+        range = Animators.Melee,
         hands = Artifact_Foire.Hands_Mane_Overload,
-        back = "Visucius's Mantle",
-        ear1 = "Burana Earring"
+        neck = "Bfn. Collar +1",
+        left_ear = "Burana Earring",
+        back = Visucius
     }
 
     sets.precast.JA["Activate"] = {
-        back = "Visucius's Mantle"
+        back = Visucius
     }
 
     sets.precast.JA["Deus Ex Automata"] = sets.precast.JA["Activate"]
 
+    -- String Theory: Master Enmity
+    -- Purpose: generate master enmity before Ventriloquy / tank opener.
+    -- BiS targets for this set: Mafic Cudgel, Unmoving Collar +1, Cryptic Earring, Trux Earring, Passion Jacket, Kurys Gloves, Supershear Ring, Eihwaz Ring, Goading Belt, Obatala Subligar, Ahosi Leggings.
     sets.precast.JA["Provoke"] = {}
 
     -- Waltz set (chr and vit)
@@ -332,18 +610,149 @@ function init_gear_sets()
         -- Add your set here
     }
 
-    -- Specific weaponskill sets.  Uses the base set if an appropriate WSMod version isn't found.
-    sets.precast.WS["Stringing Pummel"] = set_combine(sets.precast.WS, {})
+    -- Specific weaponskill sets. Uses the base set if an appropriate WSMod version isn't found.
 
-    sets.precast.WS["Stringing Pummel"].Mod = set_combine(sets.precast.WS, {})
-
-    sets.precast.WS["Victory Smite"] = set_combine(sets.precast.WS, {})
-
-    sets.precast.WS["Shijin Spiral"] = set_combine(sets.precast.WS, {
-        -- Add your set here
+    -- String Theory: Stringing Pummel
+    -- Purpose: physical multi-hit critical WS for the master.
+    -- Optional String Theory BiS upgrades: Blistering Sallet +1, Gere Ring.
+    sets.precast.WS["Stringing Pummel"] = set_combine(sets.precast.WS, {
+        main = Weapons.Kenkonken,
+        range = Animators.Melee,
+        ammo = Animators.Oil,
+        head = Heyoka.Head,
+        body = Heyoka.Body,
+        hands = Ryuo.Hands,
+        legs = Hizamaru.Legs,
+        feet = Heyoka.Feet,
+        neck = "Fotia Gorget",
+        waist = "Fotia Belt",
+        left_ear = "Brutal Earring",
+        right_ear = Moonshade,
+        left_ring = "Niqmaddu Ring",
+        right_ring = "Epona's Ring",
+        back = Visucius.MasterWSCrit
     })
 
-    sets.precast.WS["Howling Fist"] = set_combine(sets.precast.WS, {})
+    sets.precast.WS["Stringing Pummel"].Mod = set_combine(sets.precast.WS, {
+        main = Weapons.Kenkonken,
+        range = Animators.Melee,
+        ammo = Animators.Oil,
+        head = Heyoka.Head,
+        body = Heyoka.Body,
+        hands = Ryuo.Hands,
+        legs = Hizamaru.Legs,
+        feet = Heyoka.Feet,
+        neck = "Fotia Gorget",
+        waist = "Fotia Belt",
+        left_ear = "Brutal Earring",
+        right_ear = Moonshade,
+        left_ring = "Niqmaddu Ring",
+        right_ring = "Epona's Ring",
+        back = Visucius.MasterWSCrit
+    })
+
+    -- String Theory: Victory Smite
+    -- Purpose: STR-focused critical WS, very strong with offensive buffs.
+    -- Optional String Theory BiS upgrades: Verethragna (Level 119 III), Blistering Sallet +1, Gere Ring, Samnuha Tights.
+    sets.precast.WS["Victory Smite"] = set_combine(sets.precast.WS, {
+        main = Weapons.Kenkonken,
+        range = Animators.Melee,
+        ammo = Animators.Oil,
+        head = Heyoka.Head,
+        body = Heyoka.Body,
+        hands = Ryuo.Hands,
+        legs = Hizamaru.Legs,
+        feet = Heyoka.Feet,
+        neck = "Fotia Gorget",
+        waist = "Moonbow Belt +1",
+        left_ear = "Brutal Earring",
+        right_ear = Moonshade,
+        left_ring = "Niqmaddu Ring",
+        right_ring = "Epona's Ring",
+        back = Visucius.MasterWSCrit
+    })
+
+    -- String Theory: Shijin Spiral
+    -- Purpose: DEX-based multi-hit / accuracy WS.
+    -- Optional String Theory BiS upgrades: Godhands, Mache Earring +1, Regal Ring, Samnuha Tights.
+    sets.precast.WS["Shijin Spiral"] = set_combine(sets.precast.WS, {
+        range = Animators.Melee,
+        ammo = Animators.Oil,
+        head = Heyoka.Head,
+        body = Taliah.Body,
+        hands = Herculean.HandsMaster,
+        legs = Hizamaru.Legs,
+        feet = Herculean.FeetMasterCrit,
+        neck = "Fotia Gorget",
+        waist = "Fotia Belt",
+        left_ear = "Brutal Earring",
+        right_ear = Moonshade,
+        left_ring = "Niqmaddu Ring",
+        right_ring = "Epona's Ring",
+        back = Visucius.MasterWSCrit
+    })
+
+    -- String Theory: Howling Fist & Raging Fists
+    -- Purpose: master multi-hit WS; this Howling set can also serve as the base for Raging Fists later.
+    -- Optional String Theory BiS upgrades: Godhands, Pup. Collar +2, Gere Ring, Samnuha Tights.
+    sets.precast.WS["Howling Fist"] = set_combine(sets.precast.WS, {
+        range = Animators.Melee,
+        ammo = Animators.Oil,
+        head = Heyoka.Head,
+        body = Taliah.Body,
+        hands = "Tali'ah Gages +2",
+        legs = Hizamaru.Legs,
+        feet = Herculean.FeetMasterAtt,
+        neck = "Fotia Gorget",
+        waist = "Moonbow Belt +1",
+        left_ear = "Brutal Earring",
+        right_ear = Moonshade,
+        left_ring = "Niqmaddu Ring",
+        right_ring = "Epona's Ring",
+        back = Visucius.MasterDA
+    })
+
+    -- String Theory: Asuran Fists
+    -- Purpose: 8-hit WS focused on accuracy / attack.
+    -- Optional String Theory BiS upgrades: Karambit, Balder Earring +1, Regal Ring.
+    sets.precast.WS["Asuran Fists"] = set_combine(sets.precast.WS, {
+        main = "Karambit",
+        range = Animators.Melee,
+        ammo = Animators.Oil,
+        head = Relic_Pitre.Head_PRegen,
+        body = Relic_Pitre.Body_PTP,
+        hands = Relic_Pitre.Hands_WSD,
+        legs = Relic_Pitre.Legs_PMagic,
+        feet = Relic_Pitre.Feet_PMagic,
+        neck = "Fotia Gorget",
+        waist = "Fotia Belt",
+        left_ear = "Telos Earring",
+        right_ear = "Domes. Earring",
+        left_ring = "Niqmaddu Ring",
+        right_ring = "Epona's Ring",
+        back = Visucius.MasterWSCrit
+    })
+
+    -- String Theory: Aeolian Edge
+    -- Purpose: utility magical cleave option when subbing dagger.
+    sets.precast.WS["Aeolian Edge"] = set_combine(sets.precast.WS, {
+        main = "Tauret",
+        sub = "Kaja Knife",
+        range = Animators.Melee,
+        ammo = Animators.Oil,
+        head = "Herculean Helm",
+        neck = "Baetyl Pendant",
+        left_ear = "Friomisi Earring",
+        right_ear = Moonshade,
+        body = "Cohort Cloak +1",
+        hands = "Herculean Gloves",
+        left_ring = "Metamor. Ring +1",
+        right_ring = "Epaminondas's Ring",
+        back = Visucius.MasterMEva,
+        waist = "Orpheus's Sash",
+        legs = "Herculean Trousers",
+        feet = "Herculean Boots"
+    })
 
     -------------------------------------Idle
     --[[
@@ -351,8 +760,22 @@ function init_gear_sets()
         Pet is NOT active.
         Idle Mode (Ctrl-F12) = MasterDT.
     ]]
+    -- String Theory: Idle (Damage Taken)
+    -- Purpose: defensive master idle / safety set.
+    -- Optional String Theory BiS upgrades: Malignance Chapeau, Malignance Tabard, Malignance Gloves, Malignance Tights, Malignance Boots, Warder's Charm +1, Odnowa Earring +1, Defending Ring, Purity Ring.
     sets.idle.MasterDT = {
-        -- Add your set here
+        head = Naga.Head,
+        body = Hizamaru.Body,
+        hands = Herculean.HandsMaster,
+        legs = Ryuo.Legs,
+        feet = Herculean.FeetMasterAtt,
+        neck = "Adad Amulet",
+        waist = "Moonbow Belt +1",
+        left_ear = "Infused Earring",
+        right_ear = "Eabani Earring",
+        left_ring = "Yacuruna Ring",
+        right_ring = "Setae Ring",
+        back = "Moonbeam Cape"
     }
 
     -------------------------------------Engaged
@@ -361,8 +784,25 @@ function init_gear_sets()
         Offense Mode (F9) = Master (Pet is not active or not prioritized for gear).
         Hybrid Mode (Ctrl-F9) = Normal.
     ]]
+    -- String Theory: Master Only TP (Dream Tier)
+    -- Purpose: pure master TP set when the pet is not the focus.
+    -- Optional String Theory BiS upgrades: Balder Earring +1, Gere Ring.
     sets.engaged.Master = {
-        -- Add your set here
+        main = Weapons.Kenkonken,
+        range = Animators.Melee,
+        ammo = Animators.Oil,
+        head = Ryuo.Head,
+        body = Taliah.Body,
+        hands = Herculean.HandsMaster,
+        legs = Ryuo.Legs,
+        feet = Herculean.FeetMasterAtt,
+        neck = "Shulmanu Collar",
+        waist = "Moonbow Belt +1",
+        left_ear = "Telos Earring",
+        right_ear = "Cessance Earring",
+        left_ring = "Niqmaddu Ring",
+        right_ring = "Epona's Ring",
+        back = Visucius.MasterDA
     }
 
     -------------------------------------Acc
@@ -371,8 +811,24 @@ function init_gear_sets()
         Offense Mode (F9) = Master.
         Hybrid Mode (Ctrl-F9) = Acc.
     ]]
+    -- String Theory: Master Only TP accuracy-oriented variant.
+    -- Purpose: safer / higher-accuracy version of the master set.
     sets.engaged.Master.Acc = {
-        -- Add your set here
+        main = Weapons.Kenkonken,
+        range = Animators.Melee,
+        ammo = Animators.Oil,
+        head = Ryuo.Head,
+        body = Taliah.Body,
+        hands = Herculean.HandsMaster,
+        legs = Ryuo.Legs,
+        feet = Herculean.FeetMasterAtt,
+        neck = "Shulmanu Collar",
+        waist = "Moonbow Belt +1",
+        left_ear = "Telos Earring",
+        right_ear = "Cessance Earring",
+        left_ring = "Niqmaddu Ring",
+        right_ring = "Epona's Ring",
+        back = Visucius.MasterDA
     }
 
     -------------------------------------TP
@@ -381,8 +837,24 @@ function init_gear_sets()
         Offense Mode (F9) = Master.
         Hybrid Mode (Ctrl-F9) = TP.
     ]]
+    -- String Theory: Master Only TP TP-oriented / offensive sustain variant.
+    -- Purpose: standard grind / melee version of the master set.
     sets.engaged.Master.TP = {
-        -- Add your set here
+        main = Weapons.Kenkonken,
+        range = Animators.Melee,
+        ammo = Animators.Oil,
+        head = Ryuo.Head,
+        body = Taliah.Body,
+        hands = Herculean.HandsMaster,
+        legs = Ryuo.Legs,
+        feet = Herculean.FeetMasterAtt,
+        neck = "Shulmanu Collar",
+        waist = "Moonbow Belt +1",
+        left_ear = "Telos Earring",
+        right_ear = "Cessance Earring",
+        left_ring = "Niqmaddu Ring",
+        right_ring = "Epona's Ring",
+        back = Visucius.MasterDA
     }
 
     -------------------------------------DT
@@ -412,8 +884,25 @@ function init_gear_sets()
         Offense Mode (F9) = MasterPet (Player and Pet are fighting together).
         Hybrid Mode (Ctrl-F9) = Normal.
     ]]
+    -- String Theory: Dual TP / Dream Tier
+    -- Purpose: hybrid master + pet melee set, without Ohtas.
+    -- Optional String Theory BiS upgrades: Dedition Earring, Gere Ring.
     sets.engaged.MasterPet = {
-        -- Add your set here
+        main = Weapons.Kenkonken,
+        range = Animators.Melee,
+        ammo = Animators.Oil,
+        head = Heyoka.Head,
+        body = Taliah.Body,
+        hands = Herculean.HandsMaster,
+        legs = Heyoka.Legs,
+        feet = Herculean.FeetMasterAtt,
+        neck = "Shulmanu Collar",
+        waist = "Moonbow Belt +1",
+        left_ear = "Telos Earring",
+        right_ear = "Cessance Earring",
+        left_ring = "Niqmaddu Ring",
+        right_ring = "Epona's Ring",
+        back = Visucius.PetTP
     }
 
     -------------------------------------Acc
@@ -422,8 +911,23 @@ function init_gear_sets()
         Offense Mode (F9) = MasterPet.
         Hybrid Mode (Ctrl-F9) = Acc.
     ]]
+    -- String Theory: Dual TP accuracy-oriented variant.
     sets.engaged.MasterPet.Acc = {
-        -- Add your set here
+        main = Weapons.Kenkonken,
+        range = Animators.Melee,
+        ammo = Animators.Oil,
+        head = Heyoka.Head,
+        body = Taliah.Body,
+        hands = Herculean.HandsMaster,
+        legs = Heyoka.Legs,
+        feet = Herculean.FeetMasterAtt,
+        neck = "Shulmanu Collar",
+        waist = "Moonbow Belt +1",
+        left_ear = "Telos Earring",
+        right_ear = "Cessance Earring",
+        left_ring = "Niqmaddu Ring",
+        right_ring = "Epona's Ring",
+        back = Visucius.PetTP
     }
 
     -------------------------------------TP
@@ -432,8 +936,23 @@ function init_gear_sets()
         Offense Mode (F9) = MasterPet.
         Hybrid Mode (Ctrl-F9) = TP.
     ]]
+    -- String Theory: Dual TP TP-oriented variant.
     sets.engaged.MasterPet.TP = {
-        -- Add your set here
+        main = Weapons.Kenkonken,
+        range = Animators.Melee,
+        ammo = Animators.Oil,
+        head = Heyoka.Head,
+        body = Taliah.Body,
+        hands = Herculean.HandsMaster,
+        legs = Heyoka.Legs,
+        feet = Herculean.FeetMasterAtt,
+        neck = "Shulmanu Collar",
+        waist = "Moonbow Belt +1",
+        left_ear = "Telos Earring",
+        right_ear = "Cessance Earring",
+        left_ring = "Niqmaddu Ring",
+        right_ring = "Epona's Ring",
+        back = Visucius.PetTP
     }
 
     -------------------------------------DT
@@ -468,21 +987,66 @@ function init_gear_sets()
     ----------------------------------------------------------------
 
     -------------------------------------Magic Midcast
+    -- String Theory: Magic Damage
+    -- Purpose: automaton nuke / magic burst set.
+    -- Optional String Theory BiS upgrades: Udug Jacket, Pup. Collar +2, Enmerkar Earring, C. Palug Ring.
     sets.midcast.Pet = {
-        -- Add your set here
+        main = Weapons.Xiucoatl,
+        -- range = Animators.Range,
+        ammo = Animators.Oil,
+        head = Taliah.Head,
+        body = Taliah.Body,
+        hands = Herculean.HandsPet,
+        legs = Relic_Pitre.Legs_PMagic,
+        feet = Relic_Pitre.Feet_PMagic,
+        neck = "Adad Amulet",
+        waist = "Ukko Sash",
+        left_ear = "Burana Earring",
+        right_ear = "Kyrene's Earring",
+        left_ring = "Tali'ah Ring",
+        right_ring = "Thurandaut Ring",
+        back = Visucius.PetMA
     }
 
+    -- String Theory: White Mage / Pet cure set
+    -- Purpose: automaton healing set when the game identifies a pet heal action.
+    -- Optional String Theory BiS upgrades: Denouements, Empath Necklace.
     sets.midcast.Pet.Cure = {
-        -- Add your set here
+        main = Weapons.Xiucoatl,
+        -- range = Animators.Range,
+        ammo = Animators.Oil,
+        head = Naga.Head,
+        body = Naga.Body,
+        hands = Naga.Hands,
+        legs = Relic_Pitre.Legs_PMagic,
+        feet = Naga.Feet_Cure,
+        neck = "Adad Amulet",
+        waist = "Ukko Sash",
+        left_ear = "Burana Earring",
+        back = Visucius.PetMA
     }
 
+    -- String Theory: White Mage / Pet cure set
+    -- Purpose: healing magic alias for automaton healing spells.
+    -- Optional String Theory BiS upgrades: Denouements, Empath Necklace.
     sets.midcast.Pet["Healing Magic"] = {
-        -- Add your set here
+        main = Weapons.Xiucoatl,
+        -- range = Animators.Range,
+        ammo = Animators.Oil,
+        head = Naga.Head,
+        body = Naga.Body,
+        hands = Naga.Hands,
+        legs = Relic_Pitre.Legs_PMagic,
+        feet = Naga.Feet_Cure,
+        neck = "Adad Amulet",
+        waist = "Ukko Sash",
+        left_ear = "Burana Earring",
+        back = Visucius.PetMA
     }
 
-    sets.midcast.Pet["Elemental Magic"] = {
-        -- Add your set here
-    }
+    -- String Theory: Magic Damage
+    -- Purpose: elemental alias reusing the pet nuke set.
+    sets.midcast.Pet["Elemental Magic"] = set_combine(sets.midcast.Pet, {})
 
     sets.midcast.Pet["Enfeebling Magic"] = {
         -- Add your set here
@@ -508,9 +1072,26 @@ function init_gear_sets()
         Pet is Idle (not fighting).
         Idle Mode (Ctrl-F12) = Idle.
     ]]
+    -- String Theory: most practical equivalent of "Pet:Precast/Idle"
+    -- Purpose: stable set when the pet is out but its next action is not yet predictable.
+    -- Optional String Theory BiS upgrades: Denouements, Empath Necklace.
     sets.idle.Pet = {
-        head = "Heyoka Cap"
+        main = Weapons.Xiucoatl,
+        range = Animators.Range,
+        ammo = Animators.Oil,
+        head = Naga.Head,
+        body = Naga.Body,
+        hands = Naga.Hands,
+        legs = Relic_Pitre.Legs_PMagic,
+        feet = Naga.Feet_Cure,
+        neck = "Adad Amulet",
+        waist = "Ukko Sash",
+        left_ear = "Burana Earring",
+        back = Visucius.PetMA
     }
+
+    sets.idle.Regen.Pet = set_combine(sets.idle.Pet, {})
+    sets.idle.Refresh.Pet = set_combine(sets.idle.Pet, {})
 
     --[[
         Player is Idle (not fighting).
@@ -525,14 +1106,25 @@ function init_gear_sets()
     sets.pet = {} -- Not Used
 
     -- Equipped automatically
+    -- String Theory: +Enmity
+    -- Purpose: swap-in pieces for Strobe / Flashbulb to help maintain hate.
     sets.pet.Enmity = {
-        -- Add your set here
+        head = Heyoka.Head,
+        body = Heyoka.Body,
+        hands = Heyoka.Hands,
+        legs = Heyoka.Legs,
+        feet = Heyoka.Feet,
+        left_ear = "Rimeice Earring",
+        right_ear = "Domes. Earring"
     }
 
     --[[
         Activated by Alt+D or
         F10 if Physical Defense Mode = PetDT
     ]]
+    -- String Theory: Pet Tanking (Turtle / Introduction) depending on progression.
+    -- Purpose: emergency pet DT set when you want to hard-lock survivability.
+    -- BiS targets for this set: Ohrmazd or Gnafron's Adargas, Anwig Salade, Shepherd's Chain, Enmerkar Earring, Thur. Ring +1, a well-augmented Visucius PetMDT cape, and an appropriate Taeon/Rao setup.
     sets.pet.EmergencyDT = {
         -- Add your set here
     }
@@ -553,8 +1145,25 @@ function init_gear_sets()
         Hybrid Mode (Ctrl-F9) = Normal.
         This is the base set when player is idle and pet is fighting.
     ]]
+    -- String Theory: Pet Tanking (Bruiser) / introductory pet tank set.
+    -- Purpose: base engaged pet set with a good survival / damage balance.
+    -- Optional String Theory BiS upgrades: Enmerkar Earring, C. Palug Ring, Thur. Ring +1.
     sets.idle.Pet.Engaged = {
-        head = "Taeon Chapeau"
+        main = Weapons.Ohtas,
+        range = Animators.Melee,
+        ammo = Animators.Oil,
+        head = Heads.salad,
+        body = Taeon.Body,
+        hands = Taeon.Hands,
+        legs = Taeon.Legs,
+        feet = Taeon.Feet,
+        neck = "Shulmanu Collar",
+        waist = "Isa Belt",
+        left_ear = "Rimeice Earring",
+        right_ear = "Domes. Earring",
+        left_ring = "Thurandaut Ring",
+        right_ring = "Overbearing Ring",
+        back = Visucius.PetMDT
     }
 
     --[[
@@ -573,8 +1182,25 @@ function init_gear_sets()
         Idle Mode (Ctrl-F12) = Idle.
         Hybrid Mode (Ctrl-F9) = TP.
     ]]
+    -- String Theory: Pet Only TP (Double Attack Melee)
+    -- Purpose: pet melee / TP gain set focused on double attack.
+    -- Optional String Theory BiS upgrades: Enmerkar Earring, C. Palug Ring, Thur. Ring +1, Incarnation Sash.
     sets.idle.Pet.Engaged.TP = {
-        -- Add your set here
+        main = Weapons.Ohtas,
+        range = Animators.Melee,
+        ammo = Animators.Oil,
+        head = Taeon.Head,
+        body = Relic_Pitre.Body_PTP,
+        hands = Taeon.Hands,
+        legs = Taeon.Legs,
+        feet = Taeon.Feet,
+        neck = "Shulmanu Collar",
+        waist = "Klouskap Sash",
+        left_ear = "Rimeice Earring",
+        right_ear = "Domes. Earring",
+        left_ring = "Varar Ring +1",
+        right_ring = "Thurandaut Ring",
+        back = Visucius.PetTP
     }
 
     --[[
@@ -583,8 +1209,25 @@ function init_gear_sets()
         Idle Mode (Ctrl-F12) = Idle.
         Hybrid Mode (Ctrl-F9) = DT.
     ]]
+    -- String Theory: Pet Tanking (Turtle)
+    -- Purpose: pet DT / heavy defensive buffer set.
+    -- Optional String Theory BiS upgrades: Gnafron's Adargas, Shepherd's Chain, Enmerkar Earring, Thur. Ring +1.
     sets.idle.Pet.Engaged.DT = {
-        -- Add your set here
+        main = Weapons.Ohrmazd,
+        range = Animators.Melee,
+        ammo = Animators.Oil,
+        head = Heads.salad,
+        body = Rao.Body_Togi,
+        hands = Rao.Hands_Kote,
+        legs = Rao.Legs_Haidate,
+        feet = Rao.Feet_Sune_Ate,
+        neck = "Shulmanu Collar",
+        waist = "Isa Belt",
+        left_ear = "Rimeice Earring",
+        right_ear = "Burana Earring",
+        left_ring = "Thurandaut Ring",
+        right_ring = "Overbearing Ring",
+        back = Visucius.PetMDT
     }
 
     --[[
@@ -593,6 +1236,8 @@ function init_gear_sets()
         Idle Mode (Ctrl-F12) = Idle.
         Hybrid Mode (Ctrl-F9) = Regen.
     ]]
+    -- String Theory: pet regen / sustain variant.
+    -- Purpose: endurance on long fights when the pet stays deployed.
     sets.idle.Pet.Engaged.Regen = {
         -- Add your set here
     }
@@ -603,8 +1248,47 @@ function init_gear_sets()
         Idle Mode (Ctrl-F12) = Idle.
         Hybrid Mode (Ctrl-F9) = Ranged.
     ]]
+    -- String Theory: Pet Only TP (Store TP Ranger Automaton)
+    -- Purpose: ranged / sharpshot pet set.
+    -- Optional String Theory BiS upgrades: Enmerkar Earring, Klouskap Sash +1.
     sets.idle.Pet.Engaged.Ranged = set_combine(sets.idle.Pet.Engaged, {
-        legs = Empy_Karagoz.Legs_Combat
+        main = Weapons.Xiucoatl,
+        -- range = Animators.Range,
+        ammo = Animators.Oil,
+        head = Herculean.HeadPet,
+        body = Relic_Pitre.Body_PTP,
+        hands = Herculean.HandsPet,
+        legs = Taliah.Legs,
+        feet = Taliah.Feet,
+        neck = "Shulmanu Collar",
+        waist = "Ukko Sash",
+        left_ear = "Kyrene's Earring",
+        right_ear = "Burana Earring",
+        left_ring = "Varar Ring +1",
+        right_ring = "Thurandaut Ring",
+        back = Visucius.PetTP
+    })
+
+    -- String Theory: Sharpshot Overdrive
+    -- Purpose: ranged overdrive / TP bonus set for Daze-Arcuballista.
+    -- Optional String Theory BiS upgrades: Kara. Cappello +3, Karagoz Guanti +3, Thur. Ring +1, C. Palug Ring, Klouskap Sash +1.
+    sets.idle.Pet.Engaged.OD = set_combine(sets.idle.Pet.Engaged.Ranged, {
+        main = Weapons.Xiucoatl,
+        body = Relic_Pitre.Body_PTP,
+        back = Backs.Dispersal_Mantle
+    })
+
+    -- String Theory: Valoredge Overdrive
+    -- Purpose: melee overdrive / double attack set.
+    -- Optional String Theory BiS upgrades: Enmerkar Earring, Thur. Ring +1, C. Palug Ring, Klouskap Sash +1.
+    sets.idle.Pet.Engaged.ODACC = set_combine(sets.idle.Pet.Engaged.TP, {
+        main = Weapons.Xiucoatl,
+        head = Taeon.Head,
+        body = Taeon.Body,
+        hands = Taeon.Hands,
+        legs = Taeon.Legs,
+        feet = Taeon.Feet,
+        back = Visucius.PetTP
     })
 
     -------------------------------------WS
@@ -612,24 +1296,56 @@ function init_gear_sets()
         Default pet weaponskill set when state.SetFTP is false.
         Used when pet performs a weaponskill that does not benefit from TP overflow.
     ]]
+    -- String Theory: generic Pet WS set / closest to Arcuballista-Daze or Bone Crusher depending on modifier.
+    -- Purpose: base pet WS set outside of TP overflow use cases.
+    -- Optional String Theory BiS upgrades: Thur. Ring +1, C. Palug Ring.
     sets.midcast.Pet.WSNoFTP = {
-        head = "Pitre Taj +2"
-        -- Add your set here
+        main = Weapons.Xiucoatl,
+        range = Animators.Melee,
+        ammo = Animators.Oil,
+        head = Empy_Karagoz.Head_PTPBonus,
+        body = Relic_Pitre.Body_PTP,
+        hands = Herculean.HandsMaster,
+        legs = Herculean.LegsPet,
+        feet = Naga.Feet,
+        neck = "Shulmanu Collar",
+        waist = "Klouskap Sash",
+        left_ear = "Burana Earring",
+        right_ear = "Domes. Earring",
+        left_ring = "Thurandaut Ring",
+        right_ring = "Overbearing Ring",
+        back = Visucius.PetTP
     }
 
     --[[
         Pet weaponskill set used when state.SetFTP is true.
         Used for pet weaponskills that can benefit from TP overflow (WSFTP).
     ]]
+    -- String Theory: [[Arcuballista]] / [[Daze]] FTP set
+    -- Purpose: pet WS set for weapon skills that scale well with TP Bonus.
+    -- Optional String Theory BiS upgrades: Kara. Cappello +3, Karagoz Guanti +3, Kara. Pantaloni +3, Thur. Ring +1, Klouskap Sash +1.
     sets.midcast.Pet.WSFTP = {
-        head = Empy_Karagoz.Head_PTPBonus
-        -- Add your set here
+        main = Weapons.Xiucoatl,
+        range = Animators.Melee,
+        ammo = Animators.Oil,
+        head = Empy_Karagoz.Head_PTPBonus,
+        body = Relic_Pitre.Body_PTP,
+        hands = Empy_Karagoz.Hands_PTPBonus,
+        legs = Empy_Karagoz.Legs_PTPBonus,
+        feet = Naga.Feet,
+        neck = "Shulmanu Collar",
+        waist = "Klouskap Sash",
+        left_ear = "Burana Earring",
+        right_ear = "Kyrene's Earring",
+        left_ring = "Thurandaut Ring",
+        right_ring = "Overbearing Ring",
+        back = Backs.Dispersal_Mantle
     }
 
     -- Base set without modifier, uses WSNoFTP by default
     sets.midcast.Pet.WS = set_combine(sets.midcast.Pet.WSNoFTP, {
         -- Add your gear here that would be different from sets.midcast.Pet.WSNoFTP
-        head = "Pitre Taj +2"
+        head = Relic_Pitre.Head_PRegen
     })
 
     -- Chimera Ripper, String Clipper
@@ -638,6 +1354,9 @@ function init_gear_sets()
     })
 
     -- Bone crusher, String Shredder
+    -- String Theory: [[Bone Crusher]]
+    -- Purpose: blunt pet WS / undead killer set.
+    -- Optional String Theory BiS upgrades: Thur. Ring +1, C. Palug Ring, Incarnation Sash.
     sets.midcast.Pet.WS["VIT"] = set_combine(sets.midcast.Pet.WSNoFTP, {
         -- Add your gear here that would be different from sets.midcast.Pet.WSNoFTP
         head = Empy_Karagoz.Head_PTPBonus
@@ -659,7 +1378,21 @@ function init_gear_sets()
     ---------------------------------------------
     -- Town Set
     sets.idle.Town = {
-        -- Add your set here
+        main = Weapons.Kenkonken,
+        range = Animators.Melee,
+        ammo = Animators.Oil,
+        head = Hizamaru.Head,
+        body = Hizamaru.Body,
+        hands = Hizamaru.Hands,
+        legs = Hizamaru.Legs,
+        feet = Hizamaru.Feet,
+        neck = "Adad Amulet",
+        waist = "Moonbow Belt +1",
+        left_ear = "Eabani Earring",
+        right_ear = "Domes. Earring",
+        left_ring = Hizamaru.Ring,
+        right_ring = "Yacuruna Ring",
+        Visucius.MasterMEva
     }
 
     -- Resting sets

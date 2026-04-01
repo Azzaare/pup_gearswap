@@ -14,10 +14,18 @@ keybinds_on['key_bind_pet_style'] = '(ALT+F8)'
 keybinds_on['key_bind_idle'] = '(CTRL+F12)'
 keybinds_on['key_bind_offense'] = '(F9)'
 keybinds_on['key_bind_physical'] = '(CTRL+F10)'
+keybinds_on['key_bind_magical'] = '(F11)'
 keybinds_on['key_bind_hybrid'] = '(CTRL+F9)'
 keybinds_on['key_bind_auto_maneuver'] = '(ALT+E)'
 keybinds_on['key_bind_pet_dt'] = '(ALT+D)'
-keybinds_on['key_bind_lock_weapon'] = '(CTRL+Tilda)'
+keybinds_on['key_bind_lock_weapon'] = '(CTRL+`)'
+keybinds_on['key_bind_set_ftp'] = '(HOME)'
+keybinds_on['key_bind_custom_gear_lock'] = ''
+keybinds_on['key_bind_auto_deploy'] = '(PAGEUP)'
+keybinds_on['key_bind_predict'] = '(ALT+F6)'
+keybinds_on['key_bind_clear'] = '(=)'
+keybinds_on['key_bind_hub_keybinds'] = '(PAGEDOWN)'
+keybinds_on['key_bind_cp'] = '(END)'
 
 --[[
     This gets passed in when the Keybinds are turned off.
@@ -30,10 +38,18 @@ keybinds_off['key_bind_pet_style'] = ''
 keybinds_off['key_bind_idle'] = ''
 keybinds_off['key_bind_offense'] = ''
 keybinds_off['key_bind_physical'] = ''
+keybinds_off['key_bind_magical'] = ''
 keybinds_off['key_bind_hybrid'] = ''
 keybinds_off['key_bind_auto_maneuver'] = ''
 keybinds_off['key_bind_pet_dt'] = ''
 keybinds_off['key_bind_lock_weapon'] = ''
+keybinds_off['key_bind_set_ftp'] = ''
+keybinds_off['key_bind_custom_gear_lock'] = ''
+keybinds_off['key_bind_auto_deploy'] = ''
+keybinds_off['key_bind_predict'] = ''
+keybinds_off['key_bind_clear'] = ''
+keybinds_off['key_bind_hub_keybinds'] = ''
+keybinds_off['key_bind_cp'] = ''
 
 --[[
     These below are used to fill in the different sections on the HUB window
@@ -65,9 +81,11 @@ hub_state_std = [[ \cs(255, 115, 0)======= State ============\cr
 ]]
 
 hub_mode_std = [[ \cs(255, 115, 0)======= Mode ============\cr
+-\cs(125, 125, 0)Defense Status :\cr ${player_current_defense|None}
 -\cs(125, 125, 0)${key_bind_idle} Idle Mode :\cr ${player_current_idle|Idle}
 -\cs(125, 125, 0)${key_bind_offense} Offense Mode :\cr ${player_current_offense|MasterPet}
 -\cs(125, 125, 0)${key_bind_physical} Physical Mode :\cr ${player_current_physical|PetDT}
+-\cs(125, 125, 0)${key_bind_magical} Magical Mode :\cr ${player_current_magical|PetMDT}
 -\cs(125, 125, 0)${key_bind_hybrid} Hybrid Mode :\cr ${player_current_hybrid|Normal}
 ]]
 
@@ -75,9 +93,13 @@ hub_options_std = [[ \cs(255, 115, 0)======= Options ==========\cr
 -\cs(125, 125, 0)${key_bind_auto_maneuver} Auto Maneuver :\cr ${toggle_auto_maneuver|OFF}
 -\cs(125, 125, 0)${key_bind_pet_dt} Lock Pet DT Set :\cr ${toggle_lock_pet_dt_set|OFF}
 -\cs(125, 125, 0)${key_bind_lock_weapon} Lock Weapon :\cr ${toggle_lock_weapon|OFF}
--\cs(125, 125, 0) Weaponskill FTP :\cr ${toggle_weaponskill_ftp|OFF}
--\cs(125, 125, 0) Custom Gear Lock :\cr ${toggle_custom_gear_lock|OFF}
--\cs(125, 125, 0) Auto Deploy :\cr ${toggle_auto_deploy|OFF}
+-\cs(125, 125, 0)${key_bind_set_ftp} Weaponskill FTP :\cr ${toggle_weaponskill_ftp|OFF}
+-\cs(125, 125, 0)${key_bind_custom_gear_lock} Custom Gear Lock :\cr ${toggle_custom_gear_lock|OFF}
+-\cs(125, 125, 0)${key_bind_auto_deploy} Auto Deploy :\cr ${toggle_auto_deploy|OFF}
+-\cs(125, 125, 0)${key_bind_cp} CP Mode :\cr ${toggle_cp|OFF}
+-\cs(125, 125, 0)${key_bind_predict} Predict Pet Mode\cr
+-\cs(125, 125, 0)${key_bind_clear} Clear Maneuvers\cr
+-\cs(125, 125, 0)${key_bind_hub_keybinds} Toggle Keybinds\cr
 ]]
 
 --[[
@@ -95,11 +117,11 @@ hub_state_lte = [[
 ]]
 
 hub_mode_lte = [[
-\cs(255, 115, 0)= Mode: \cr-\cs(125, 125, 0)${key_bind_idle} Idle Mode :\cr ${player_current_idle|Idle}-\cs(125, 125, 0)${key_bind_offense} Offense Mode :\cr ${player_current_offense|MasterPet}-\cs(125, 125, 0)${key_bind_physical} Physical Mode :\cr ${player_current_physical|PetDT}-\cs(125, 125, 0)${key_bind_hybrid} Hybrid Mode :\cr ${player_current_hybrid|Normal}
+\cs(255, 115, 0)= Mode: \cr-\cs(125, 125, 0)Defense :\cr ${player_current_defense|None}-\cs(125, 125, 0)${key_bind_idle} Idle Mode :\cr ${player_current_idle|Idle}-\cs(125, 125, 0)${key_bind_offense} Offense Mode :\cr ${player_current_offense|MasterPet}-\cs(125, 125, 0)${key_bind_physical} Physical Mode :\cr ${player_current_physical|PetDT}-\cs(125, 125, 0)${key_bind_magical} Magical Mode :\cr ${player_current_magical|PetMDT}-\cs(125, 125, 0)${key_bind_hybrid} Hybrid Mode :\cr ${player_current_hybrid|Normal}
 ]]
 
 hub_options_lte = [[
-\cs(255, 115, 0)= Options: \cr-\cs(125, 125, 0)${key_bind_auto_maneuver} AutoMan :\cr ${toggle_auto_maneuver|OFF}-\cs(125, 125, 0)${key_bind_pet_dt} \cs(125, 125, 0) AutoDep :\cr ${toggle_auto_deploy|OFF}
+\cs(255, 115, 0)= Options: \cr-\cs(125, 125, 0)${key_bind_auto_maneuver} AutoMan :\cr ${toggle_auto_maneuver|OFF}-\cs(125, 125, 0)${key_bind_pet_dt} PetDT :\cr ${toggle_lock_pet_dt_set|OFF}-\cs(125, 125, 0)${key_bind_set_ftp} FTP :\cr ${toggle_weaponskill_ftp|OFF}-\cs(125, 125, 0)${key_bind_auto_deploy} AutoDep :\cr ${toggle_auto_deploy|OFF}-\cs(125, 125, 0)${key_bind_cp} CP :\cr ${toggle_cp|OFF}
 ]]
 
 -- init style
@@ -183,9 +205,11 @@ function updateTextInformation()
     main_text_hub.pet_current_style = state.PetStyleCycle.current
 
     -- Mode Information
+    main_text_hub.player_current_defense = state.DefenseMode.current
     main_text_hub.player_current_idle = state.IdleMode.current
     main_text_hub.player_current_offense = state.OffenseMode.current
     main_text_hub.player_current_physical = state.PhysicalDefenseMode.current
+    main_text_hub.player_current_magical = state.MagicalDefenseMode.current
     main_text_hub.player_current_hybrid = state.HybridMode.current
 
     -- Options Information
@@ -223,6 +247,12 @@ function updateTextInformation()
         main_text_hub.toggle_auto_deploy = const_on
     else
         main_text_hub.toggle_auto_deploy = const_off
+    end
+
+    if state.CP.value then
+        main_text_hub.toggle_cp = const_on
+    else
+        main_text_hub.toggle_cp = const_off
     end
 
     if state.Keybinds.value then
