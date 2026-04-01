@@ -56,10 +56,37 @@ local function get_pet_engaged_override_set(default_set)
     return default_set
 end
 
+local function get_pet_idle_override_set(default_set)
+    if not sets or not sets.idle or not sets.idle.Pet then
+        return default_set
+    end
+
+    local pet_mode = state.PetModeCycle and state.PetModeCycle.current or nil
+    local engaged_set = sets.idle.Pet.Engaged or {}
+
+    if pet_mode == const_tank then
+        return engaged_set.DT or default_set
+    elseif pet_mode == const_dd then
+        return engaged_set.Regen or default_set
+    elseif pet_mode == const_mage then
+        return sets.idle.Pet or default_set
+    end
+
+    return default_set
+end
+
 -- Used to determine what Hybrid Mode to use when Player Idle and Pet is Engaged
 function user_customize_idle_set(idleSet)
     if Master_State:lower() == const_stateIdle:lower() and Pet_State:lower() == const_stateEngaged:lower() then
         return get_pet_engaged_override_set(idleSet)
+    elseif Master_State:lower() == const_stateIdle:lower() and pet.isvalid and Pet_State:lower() == const_stateIdle:lower() then
+        -- Keep explicit MasterDT handling intact; otherwise map pet-idle standby
+        -- to a simple role-based set choice:
+        -- Tank -> DT, DD -> Regen, Mage -> Pet PreAction/Idle.
+        if state.IdleMode and state.IdleMode.current == "MasterDT" then
+            return idleSet
+        end
+        return get_pet_idle_override_set(idleSet)
     else -- Otherwise return the idleSet with no changes from us
         return idleSet
     end
